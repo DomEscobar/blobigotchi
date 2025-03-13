@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import CRTOverlay from '@/components/CRTOverlay';
 import StatusBar from '@/components/StatusBar';
 import ActionButton from '@/components/ActionButton';
 import Habitat from '@/components/Habitat';
 import EvolutionMeter from '@/components/EvolutionMeter';
-import { Heart, Droplet, Fire, Battery, Gamepad, Sparkles, Bath, Utensils, Settings } from 'lucide-react';
+import { Heart, Droplet, Flame, Battery, Gamepad, Sparkles, Bath, Utensils, Settings } from 'lucide-react';
 import { BlobMood } from '@/components/Blob';
 import { toast } from "sonner";
 
@@ -55,7 +54,6 @@ const Index = () => {
     const newHunger = Math.min(100, hunger + 20);
     setHunger(newHunger);
     setEnergy(prev => Math.min(100, prev + 5));
-    // Blob gets a bit dirty when eating
     setHygiene(prev => Math.max(0, prev - 5));
     
     setLastAction('feed');
@@ -66,7 +64,6 @@ const Index = () => {
   const playWithBlob = () => {
     const newHappiness = Math.min(100, happiness + 25);
     setHappiness(newHappiness);
-    // Playing uses energy and makes blob hungry
     setEnergy(prev => Math.max(0, prev - 15));
     setHunger(prev => Math.max(0, prev - 10));
     
@@ -78,7 +75,6 @@ const Index = () => {
   const cleanBlob = () => {
     const newHygiene = Math.min(100, hygiene + 30);
     setHygiene(newHygiene);
-    // Cleaning uses some energy
     setEnergy(prev => Math.max(0, prev - 5));
     
     setLastAction('clean');
@@ -89,7 +85,6 @@ const Index = () => {
   const restBlob = () => {
     const newEnergy = Math.min(100, energy + 40);
     setEnergy(newEnergy);
-    // Resting makes blob a bit hungry and bored
     setHunger(prev => Math.max(0, prev - 5));
     setHappiness(prev => Math.max(0, prev - 5));
     
@@ -101,15 +96,13 @@ const Index = () => {
   const increaseEvolution = () => {
     setActionCounter(prev => {
       const newCount = prev + 1;
-      // Every 10 actions, increase evolution progress
       if (newCount % 10 === 0) {
         setEvolutionProgress(prevProgress => {
           const newProgress = prevProgress + 10;
-          // Level up when progress reaches 100%
           if (newProgress >= 100) {
             setEvolutionLevel(prevLevel => prevLevel + 1);
             showActionFeedback('LEVEL UP! Blob has evolved!', '✨', true);
-            return 0; // Reset progress after level up
+            return 0;
           }
           return newProgress;
         });
@@ -120,7 +113,6 @@ const Index = () => {
 
   const handleBlobClick = () => {
     setHappiness(prev => Math.min(100, prev + 5));
-    // Easter egg: Every 5 clicks shows a special message
     if (actionCounter % 5 === 0) {
       showActionFeedback('Blob loves the attention!', '❤️');
     }
@@ -148,13 +140,12 @@ const Index = () => {
         <div className="relative">
           <CRTOverlay className="rounded-xl overflow-hidden border-4 border-gray-800">
             <div className="flex flex-col h-[600px]">
-              {/* Status HUD */}
               <div className="grid grid-cols-2 gap-2 p-4 z-10">
                 <div className="space-y-2">
                   <StatusBar 
                     label="Hunger" 
                     value={hunger} 
-                    icon={Fire} 
+                    icon={Flame} 
                     color="blob-hungry" 
                   />
                   <StatusBar 
@@ -185,12 +176,10 @@ const Index = () => {
                 />
               </div>
               
-              {/* Main habitat area */}
               <div className="flex-1 relative">
                 <Habitat mood={mood} onBlobClick={handleBlobClick} />
               </div>
               
-              {/* Action buttons */}
               <div className="grid grid-cols-5 gap-1 p-3 bg-gray-900/70 border-t border-gray-700">
                 <ActionButton 
                   label="Feed" 
@@ -225,7 +214,6 @@ const Index = () => {
             </div>
           </CRTOverlay>
           
-          {/* PixelBlob Life logo */}
           <div className="absolute -top-6 left-0 right-0 flex justify-center">
             <div className="bg-crt-dark px-6 py-2 rounded-full border-2 border-blob-tertiary shadow-lg">
               <span className="pixel-text text-lg bg-gradient-to-r from-blob-primary via-blob-secondary to-blob-tertiary bg-clip-text text-transparent">
@@ -235,7 +223,6 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Footer */}
         <div className="mt-4 text-center">
           <p className="text-xs text-gray-400">
             Take good care of your virtual pet! Interact regularly to help it evolve.
