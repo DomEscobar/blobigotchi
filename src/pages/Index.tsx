@@ -7,8 +7,11 @@ import EvolutionMeter from '@/components/EvolutionMeter';
 import { Heart, Droplet, Flame, Battery, Gamepad, Sparkles, Bath, Utensils, Settings } from 'lucide-react';
 import { BlobMood } from '@/components/Blob';
 import { toast } from "sonner";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
+  const isMobile = useIsMobile();
+  
   // Blob stats state
   const [hunger, setHunger] = useState(80);
   const [happiness, setHappiness] = useState(70);
@@ -123,25 +126,25 @@ const Index = () => {
       toast(message, {
         description: icon.repeat(3),
         duration: 5000,
-        className: "pixel-text bg-crt-background border border-blob-tertiary text-white",
+        className: `pixel-text bg-crt-background border border-blob-tertiary text-white ${isMobile ? 'text-xs' : ''}`,
       });
     } else {
       toast(message, {
         description: icon,
         duration: 3000,
-        className: "pixel-text bg-crt-background border border-gray-700 text-white",
+        className: `pixel-text bg-crt-background border border-gray-700 text-white ${isMobile ? 'text-xs' : ''}`,
       });
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 bg-gray-900">
+    <div className="flex items-center justify-center min-h-screen p-2 md:p-4 bg-gray-900">
       <div className="w-full max-w-md">
         <div className="relative">
           <CRTOverlay className="rounded-xl overflow-hidden border-4 border-gray-800">
-            <div className="flex flex-col h-[600px]">
-              <div className="grid grid-cols-2 gap-2 p-4 z-10">
-                <div className="space-y-2">
+            <div className="flex flex-col h-[600px] md:h-[650px]">
+              <div className="grid grid-cols-2 gap-1 md:gap-2 p-2 md:p-4 z-10">
+                <div className="space-y-1 md:space-y-2">
                   <StatusBar 
                     label="Hunger" 
                     value={hunger} 
@@ -155,7 +158,7 @@ const Index = () => {
                     color="blob-happy" 
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 md:space-y-2">
                   <StatusBar 
                     label="Hygiene" 
                     value={hygiene} 
@@ -180,7 +183,7 @@ const Index = () => {
                 <Habitat mood={mood} onBlobClick={handleBlobClick} />
               </div>
               
-              <div className="grid grid-cols-5 gap-1 p-3 bg-gray-900/70 border-t border-gray-700">
+              <div className="grid grid-cols-5 gap-1 p-2 md:p-3 bg-gray-900/70 border-t border-gray-700">
                 <ActionButton 
                   label="Feed" 
                   icon={Utensils} 
@@ -215,16 +218,16 @@ const Index = () => {
           </CRTOverlay>
           
           <div className="absolute -top-6 left-0 right-0 flex justify-center">
-            <div className="bg-crt-dark px-6 py-2 rounded-full border-2 border-blob-tertiary shadow-lg">
-              <span className="pixel-text text-lg bg-gradient-to-r from-blob-primary via-blob-secondary to-blob-tertiary bg-clip-text text-transparent">
+            <div className="bg-crt-dark px-4 md:px-6 py-1 md:py-2 rounded-full border-2 border-blob-tertiary shadow-lg">
+              <span className={`pixel-text ${isMobile ? 'text-sm' : 'text-lg'} bg-gradient-to-r from-blob-primary via-blob-secondary to-blob-tertiary bg-clip-text text-transparent`}>
                 PixelBlob Life
               </span>
             </div>
           </div>
         </div>
         
-        <div className="mt-4 text-center">
-          <p className="text-xs text-gray-400">
+        <div className="mt-3 md:mt-4 text-center">
+          <p className={`${isMobile ? 'text-[9px]' : 'text-xs'} text-gray-400`}>
             Take good care of your virtual pet! Interact regularly to help it evolve.
           </p>
         </div>
