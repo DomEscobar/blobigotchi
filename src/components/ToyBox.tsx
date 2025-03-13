@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Blocks, Bell, Sparkles } from 'lucide-react';
+import { Blocks, Rattle, Balloon } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
   Drawer,
@@ -69,14 +69,14 @@ const ToyBox: React.FC<ToyBoxProps> = ({ onToyInteraction }) => {
       <Toy 
         name="Rattle" 
         color="bg-[#E5DEFF]" 
-        icon={<Bell className="text-[#8B5CF6]" size={isMobile ? 24 : 32} />} 
+        icon={<Rattle className="text-[#8B5CF6]" size={isMobile ? 24 : 32} />} 
         onClick={() => handleToyClick("Rattle")} 
       />
       <Toy 
-        name="Sparkles" 
+        name="Balloon" 
         color="bg-[#FFDEE2]" 
-        icon={<Sparkles className="text-[#D946EF]" size={isMobile ? 24 : 32} />} 
-        onClick={() => handleToyClick("Sparkles")} 
+        icon={<Balloon className="text-[#D946EF]" size={isMobile ? 24 : 32} />} 
+        onClick={() => handleToyClick("Balloon")} 
       />
     </div>
   );
