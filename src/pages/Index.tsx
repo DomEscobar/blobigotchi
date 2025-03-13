@@ -17,7 +17,10 @@ const Index = () => {
     <div className="flex items-center justify-center min-h-screen p-2 md:p-4 bg-gray-900">
       <div className="w-full max-w-md">
         <div className="relative">
-          <CRTOverlay className="rounded-xl overflow-hidden border-4 border-gray-800">
+          <CRTOverlay 
+            className="rounded-xl overflow-hidden border-4 border-gray-800"
+            mood={stats.mood}
+          >
             <div className="flex flex-col h-[600px] md:h-[650px]">
               <StatsPanel stats={stats} />
               

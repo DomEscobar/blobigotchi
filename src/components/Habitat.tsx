@@ -56,10 +56,20 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '' }) 
     onBlobClick(); // Double happiness boost for toy interaction
   };
 
+  // Determine background class based on mood
+  const getBgClass = () => {
+    if (['sad', 'hungry', 'tired', 'sick'].includes(mood)) {
+      return 'from-crt-background/90 to-crt-dark/95'; // Darker for neglected blobs
+    } else if (mood === 'happy') {
+      return 'from-crt-background to-crt-dark/80'; // Brighter for happy blobs
+    }
+    return 'from-crt-background to-crt-dark'; // Default
+  };
+
   return (
     <div className={`relative w-full h-full rounded-lg overflow-hidden ${className}`}>
       {/* Habitat background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-crt-background to-crt-dark">
+      <div className={`absolute inset-0 bg-gradient-to-b ${getBgClass()} transition-all duration-1000`}>
         {/* Checkerboard floor pattern */}
         <div className="absolute bottom-0 left-0 right-0 h-24 w-full overflow-hidden">
           <div className="w-full h-full" style={{ 
@@ -120,6 +130,20 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '' }) 
           <div className="w-3 h-1 bg-blob-tertiary absolute top-4 left-3 rounded-full transform origin-left -rotate-45"></div>
           <div className="w-1 h-1 bg-white rounded-full absolute top-4 left-3.5"></div>
         </div>
+        
+        {/* Happy blob particle effects */}
+        {mood === 'happy' && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute left-1/2 bottom-24 transform -translate-x-1/2 w-24 h-24 opacity-50">
+              <div className="absolute w-3 h-3 rounded-full bg-blob-happy animate-blob-idle" 
+                   style={{ left: '40%', top: '30%', animationDelay: '0.5s' }}></div>
+              <div className="absolute w-2 h-2 rounded-full bg-blob-tertiary animate-blob-idle" 
+                   style={{ left: '60%', top: '40%', animationDelay: '1s' }}></div>
+              <div className="absolute w-2 h-2 rounded-full bg-blob-secondary animate-blob-idle" 
+                   style={{ left: '30%', top: '50%', animationDelay: '1.5s' }}></div>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Blob positioning */}
