@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Blob, { BlobMood } from './Blob';
 import { toast } from "sonner";
 import { useIsMobile } from '@/hooks/use-mobile';
+import ToyBox from './ToyBox';
 
 interface HabitatProps {
   mood: BlobMood;
@@ -46,6 +47,13 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '' }) 
         duration: 3000,
       });
     }
+  };
+
+  const handleToyInteraction = () => {
+    // Pass the interaction back to the parent for happiness effect
+    onBlobClick();
+    // Additional effect specific to toys
+    onBlobClick(); // Double happiness boost for toy interaction
   };
 
   return (
@@ -118,6 +126,9 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '' }) 
       <div className="absolute left-1/2 bottom-16 transform -translate-x-1/2">
         <Blob mood={mood} onClick={onBlobClick} />
       </div>
+
+      {/* Add the Toy Box */}
+      <ToyBox onToyInteraction={handleToyInteraction} />
     </div>
   );
 };
