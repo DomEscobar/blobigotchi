@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import CRTOverlay from '@/components/CRTOverlay';
 import TitleBar from '@/components/TitleBar';
@@ -7,7 +6,7 @@ import WardrobeGrid from '@/components/WardrobeGrid';
 import BlobCanvas from '@/components/BlobCanvas';
 import { useBlobStats } from '@/hooks/useBlobStats';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { ClothingItem, EquippedItems, ItemCategory } from '@/types/fashion';
+import { ClothingItem, EquippedItems, ItemCategory, ItemPosition } from '@/types/fashion';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
