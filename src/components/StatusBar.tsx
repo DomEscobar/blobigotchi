@@ -22,21 +22,28 @@ const StatusBar: React.FC<StatusBarProps> = ({
   const percentage = Math.min(100, Math.max(0, (value / maxValue) * 100));
   
   return (
-    <div className="status-container group">
-      <Icon 
-        size={isMobile ? 14 : 16} 
-        className={`text-${color} transition-transform group-hover:scale-110`} 
-      />
-      <div className="flex flex-col flex-1">
-        <div className="flex justify-between items-center">
-          <span className={`pixel-text ${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-300`}>{label}</span>
-          <span className={`pixel-text ${isMobile ? 'text-[9px]' : 'text-xs'} text-gray-400`}>{Math.floor(value)}/{maxValue}</span>
-        </div>
-        <div className="h-2 w-full bg-gray-800 rounded-sm overflow-hidden mt-1">
-          <div 
-            className={`pixel-progress bg-${color}`} 
-            style={{ width: `${percentage}%` }}
-          ></div>
+    <div className="status-container group bg-black/90 border-gray-700">
+      <div className="flex items-center px-2 py-1 w-full">
+        <Icon 
+          size={isMobile ? 14 : 16} 
+          className={`text-${color} transition-transform group-hover:scale-110 mr-2`} 
+        />
+        
+        <div className="flex flex-col flex-1">
+          <div className="flex justify-between items-center">
+            <span className={`pixel-text ${isMobile ? 'text-[10px]' : 'text-xs'} text-white`}>
+              {label}
+            </span>
+            <span className={`pixel-text ${isMobile ? 'text-[9px]' : 'text-xs'} text-white`}>
+              {Math.floor(value)}/{maxValue}
+            </span>
+          </div>
+          <div className="h-2 w-full bg-gray-800 rounded-sm overflow-hidden mt-1">
+            <div 
+              className={`pixel-progress bg-${color}`} 
+              style={{ width: `${percentage}%` }}
+            ></div>
+          </div>
         </div>
       </div>
     </div>

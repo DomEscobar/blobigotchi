@@ -35,6 +35,39 @@
   --theme-tertiary: #FFAFD1;
 }
 
+/* Status bar colors */
+.bg-red-500 {
+  background-color: #EF4444;
+}
+
+.bg-green-500 {
+  background-color: #10B981;
+}
+
+.bg-yellow-500 {
+  background-color: #F59E0B;
+}
+
+.bg-blue-400 {
+  background-color: #60A5FA;
+}
+
+.text-red-500 {
+  color: #EF4444;
+}
+
+.text-green-500 {
+  color: #10B981;
+}
+
+.text-yellow-500 {
+  color: #F59E0B;
+}
+
+.text-blue-400 {
+  color: #60A5FA;
+}
+
 /* Apply theme colors to components */
 [data-theme="blue"] .blob-primary,
 [data-theme="green"] .blob-primary,

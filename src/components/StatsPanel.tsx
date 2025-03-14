@@ -13,39 +13,35 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats }) => {
   const { hunger, happiness, hygiene, energy, evolutionLevel, evolutionProgress } = stats;
   
   return (
-    <div className="grid grid-cols-2 gap-1 md:gap-2 p-2 md:p-4 z-10">
-      <div className="space-y-1 md:space-y-2">
-        <StatusBar 
-          label="Hunger" 
-          value={hunger} 
-          icon={Flame} 
-          color="blob-hungry" 
-        />
-        <StatusBar 
-          label="Happiness" 
-          value={happiness} 
-          icon={Heart} 
-          color="blob-happy" 
-        />
-      </div>
-      <div className="space-y-1 md:space-y-2">
-        <StatusBar 
-          label="Hygiene" 
-          value={hygiene} 
-          icon={Droplet} 
-          color="blob-sick" 
-        />
-        <StatusBar 
-          label="Energy" 
-          value={energy} 
-          icon={Battery} 
-          color="blob-tired" 
-        />
-      </div>
+    <div className="grid grid-cols-2 gap-2 p-2 md:p-3 z-10">
+      <StatusBar 
+        label="Hunger" 
+        value={hunger} 
+        icon={Flame} 
+        color="red-500" 
+      />
+      <StatusBar 
+        label="Hygiene" 
+        value={hygiene} 
+        icon={Droplet} 
+        color="green-500" 
+      />
+      <StatusBar 
+        label="Happiness" 
+        value={happiness} 
+        icon={Heart} 
+        color="yellow-500" 
+      />
+      <StatusBar 
+        label="Energy" 
+        value={energy} 
+        icon={Battery} 
+        color="blue-400" 
+      />
       <EvolutionMeter 
         level={evolutionLevel} 
         progress={evolutionProgress} 
-        className="col-span-2 mt-1" 
+        className="col-span-2 mt-1 bg-black/90 border-gray-700" 
       />
     </div>
   );
