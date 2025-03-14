@@ -22,7 +22,8 @@ interface ActionPanelProps {
 
 const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   const { hunger, energy, hygiene } = stats;
-  const { feedBlob, playWithBlob, cleanBlob, restBlob, handleDevAction } = actions;
+  // Rename the destructured handleDevAction to devActionHandler to avoid naming conflicts
+  const { feedBlob, playWithBlob, cleanBlob, restBlob, handleDevAction: devActionHandler } = actions;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { settings, updateSettings } = useSettings();
   const { toast } = useToast();
@@ -58,9 +59,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
     }
   };
 
+  // Create a wrapper function to handle developer actions
   const handleDevAction = (action: string, value?: number) => {
-    if (handleDevAction) {
-      actions.handleDevAction(action, value);
+    if (devActionHandler) {
+      devActionHandler(action, value);
     }
   };
   
