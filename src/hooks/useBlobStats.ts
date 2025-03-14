@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { BlobMood } from '@/components/Blob';
 import { toast } from "sonner";
 import { useIsMobile } from './use-mobile';
+import { useSounds } from './useSounds';
+import { useSettings } from './useSettings';
 
 export interface BlobStats {
   hunger: number;
@@ -18,6 +20,8 @@ export interface BlobStats {
 
 export function useBlobStats() {
   const isMobile = useIsMobile();
+  const { playSoundEffect } = useSounds();
+  const { settings } = useSettings();
   
   // Blob stats state
   const [hunger, setHunger] = useState(80);
@@ -82,6 +86,11 @@ export function useBlobStats() {
         setEvolutionProgress(prevProgress => {
           const newProgress = prevProgress + 10;
           if (newProgress >= 100) {
+            if (settings.sound) {
+              // Play a special sound for evolution
+              playSoundEffect('play');
+              setTimeout(() => playSoundEffect('feed'), 300);
+            }
             setEvolutionLevel(prevLevel => prevLevel + 1);
             showActionFeedback('LEVEL UP! Blob has evolved!', '✨', true);
             return 0;

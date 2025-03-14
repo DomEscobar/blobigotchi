@@ -13,6 +13,8 @@ import {
   DrawerFooter,
 } from '@/components/ui/drawer';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
+import { useSounds } from '@/hooks/useSounds';
+import { useSettings } from '@/hooks/useSettings';
 
 interface ToyBoxProps {
   onToyInteraction: () => void;
@@ -47,8 +49,14 @@ const Toy: React.FC<{
 const ToyBox: React.FC<ToyBoxProps> = ({ onToyInteraction }) => {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const { playSoundEffect } = useSounds();
+  const { settings } = useSettings();
   
   const handleToyClick = (toyName: string) => {
+    if (settings.sound) {
+      playSoundEffect('play');
+    }
+    
     toast(`Playing with ${toyName}!`, {
       description: "Your blob seems happier!",
       className: `pixel-text bg-crt-dark border border-blob-tertiary text-white ${isMobile ? 'text-[9px]' : 'text-xs'}`,
@@ -56,6 +64,13 @@ const ToyBox: React.FC<ToyBoxProps> = ({ onToyInteraction }) => {
     });
     onToyInteraction();
     if (!isMobile) setIsOpen(false);
+  };
+
+  const handleBoxClick = () => {
+    if (settings.sound) {
+      playSoundEffect('click');
+    }
+    setIsOpen(true);
   };
 
   const ToysContent = () => (
@@ -92,6 +107,7 @@ const ToyBox: React.FC<ToyBoxProps> = ({ onToyInteraction }) => {
             height: isMobile ? '28px' : '36px',
             zIndex: 10
           }}
+          onClick={handleBoxClick}
         >
           <div className="w-full h-full bg-yellow-800 rounded-t-lg border-2 border-black relative">
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-2 bg-yellow-600 rounded-full border border-black"></div>
@@ -122,6 +138,7 @@ const ToyBox: React.FC<ToyBoxProps> = ({ onToyInteraction }) => {
             height: '36px',
             zIndex: 10
           }}
+          onClick={handleBoxClick}
         >
           <div className="w-full h-full bg-yellow-800 rounded-t-lg border-2 border-black relative">
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-2 bg-yellow-600 rounded-full border border-black"></div>

@@ -4,6 +4,8 @@ import Blob, { BlobMood } from './Blob';
 import { toast } from "sonner";
 import { useIsMobile } from '@/hooks/use-mobile';
 import ToyBox from './ToyBox';
+import { useSounds } from '@/hooks/useSounds';
+import { useSettings } from '@/hooks/useSettings';
 
 interface HabitatProps {
   mood: BlobMood;
@@ -15,9 +17,16 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '' }) 
   const isMobile = useIsMobile();
   const [isFridgeOpen, setIsFridgeOpen] = useState(false);
   const [isTvOn, setIsTvOn] = useState(false);
+  const { playSoundEffect } = useSounds();
+  const { settings } = useSettings();
   
   const handleFridgeClick = () => {
     setIsFridgeOpen(prev => !prev);
+    
+    if (settings.sound) {
+      playSoundEffect('click');
+    }
+    
     // Play squeak sound effect (would be implemented with actual audio)
     if (!isFridgeOpen) {
       toast("Opening fridge...", {
@@ -35,6 +44,11 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '' }) 
   
   const handleTvClick = () => {
     setIsTvOn(prev => !prev);
+    
+    if (settings.sound) {
+      playSoundEffect('click');
+    }
+    
     if (isTvOn) {
       toast("TV powered off", {
         className: `pixel-text bg-crt-dark border border-blob-tertiary text-white ${isMobile ? 'text-[9px]' : 'text-xs'}`,
@@ -47,6 +61,13 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '' }) 
         duration: 3000,
       });
     }
+  };
+
+  const handleBlobClickWithSound = () => {
+    if (settings.sound) {
+      playSoundEffect('play');
+    }
+    onBlobClick();
   };
 
   const handleToyInteraction = () => {
@@ -148,7 +169,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '' }) 
       
       {/* Blob positioning */}
       <div className="absolute left-1/2 bottom-16 transform -translate-x-1/2">
-        <Blob mood={mood} onClick={onBlobClick} />
+        <Blob mood={mood} onClick={handleBlobClickWithSound} />
       </div>
 
       {/* Add the Toy Box */}
