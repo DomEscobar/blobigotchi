@@ -1,10 +1,9 @@
 
 import React from 'react';
 import ActionButton from './ActionButton';
-import { Utensils, Gamepad, Bath, Sparkles, Shirt } from 'lucide-react';
+import { Utensils, Gamepad, Bath, Sparkles, Settings, Shirt } from 'lucide-react';
 import { BlobStats } from '@/hooks/useBlobStats';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 interface ActionPanelProps {
   stats: Pick<BlobStats, 'hunger' | 'energy' | 'hygiene'>;
@@ -23,7 +22,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   const navigate = useNavigate();
   
   const handleFashionClick = () => {
-    toast.success('Opening Fashion Studio!');
     navigate('/fashion');
   };
   
