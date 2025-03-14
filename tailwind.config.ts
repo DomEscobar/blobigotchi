@@ -1,4 +1,3 @@
-
 import { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 import animatePlugin from "tailwindcss-animate";
@@ -104,6 +103,15 @@ const config = {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.5" },
         },
+        "spin-slow": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        "shake": {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "25%": { transform: "rotate(-15deg)" },
+          "75%": { transform: "rotate(15deg)" },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -113,6 +121,8 @@ const config = {
         "blob-bounce": "blob-bounce 0.5s ease-in-out",
         "led-blink": "led-blink 1.5s ease-in-out infinite",
         "pulse": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "spin-slow": "spin-slow 3s linear infinite",
+        "shake": "shake 0.5s ease-in-out",
       },
     },
   },

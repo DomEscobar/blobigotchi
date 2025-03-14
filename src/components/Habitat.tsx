@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Blob, { BlobMood } from './Blob';
 import { toast } from "sonner";
@@ -5,6 +6,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import ToyBox from './ToyBox';
 import { useSounds } from '@/hooks/useSounds';
 import { useSettings } from '@/hooks/useSettings';
+import BabyRoom from './environments/BabyRoom';
+import AdultRoom from './environments/AdultRoom';
 
 interface HabitatProps {
   mood: BlobMood;
@@ -85,7 +88,9 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
 
   return (
     <div className={`relative w-full h-full rounded-lg overflow-hidden ${className}`}>
+      {/* Background gradient */}
       <div className={`absolute inset-0 bg-gradient-to-b ${getBgClass()} transition-all duration-1000`}>
+        {/* Floor */}
         <div className="absolute bottom-0 left-0 right-0 h-24 w-full overflow-hidden">
           <div className="w-full h-full" style={{ 
             backgroundImage: `repeating-conic-gradient(#333 0% 25%, #444 0% 50%)`, 
@@ -95,51 +100,73 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
           }}></div>
         </div>
         
-        <div 
-          className={`absolute right-4 top-12 w-16 h-12 bg-gray-800 rounded-lg border-2 border-gray-700 cursor-pointer transition-all duration-300 ${isTvOn ? 'shadow-[0_0_8px_rgba(0,150,255,0.7)]' : ''}`}
-          onClick={handleTvClick}
-        >
-          <div className={`w-full h-8 rounded-t-sm overflow-hidden transition-colors duration-300 ${isTvOn ? 'bg-blue-400/80' : 'bg-gray-600/50'}`}>
-            {isTvOn ? (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-6 h-4 bg-yellow-400 animate-pulse"></div>
-              </div>
-            ) : (
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping opacity-70 ml-2 mt-2"></div>
-            )}
-          </div>
-          <div className="flex justify-center mt-1 space-x-1">
-            <div className="w-1 h-1 bg-red-500 rounded-full"></div>
-            <div className="w-1 h-1 bg-green-500 rounded-full"></div>
-          </div>
-        </div>
-        
-        <div 
-          className={`absolute left-4 top-12 w-10 h-14 bg-gray-300 rounded-sm border border-gray-500 cursor-pointer transition-transform duration-300 ${isFridgeOpen ? 'transform -translate-y-1' : ''}`}
-          onClick={handleFridgeClick}
-        >
-          <div className={`w-full h-8 bg-gray-200 rounded-t-sm border-b border-gray-500 transition-all duration-300 origin-left ${isFridgeOpen ? 'transform rotate-[60deg] shadow-md' : ''}`}>
-            <div className="w-1 h-2 bg-gray-500 rounded-full ml-auto mr-1 mt-2"></div>
-          </div>
-          
-          {isFridgeOpen && (
-            <div className="absolute top-1 left-1 w-8 h-6 bg-cyan-50 rounded-sm p-0.5">
-              <div className="w-2 h-1.5 bg-blob-happy rounded-sm absolute top-1 left-1"></div>
-              <div className="w-3 h-1.5 bg-blob-hungry rounded-sm absolute bottom-1 right-1"></div>
+        {/* Render environment based on evolution level */}
+        {evolutionLevel <= 1 && (
+          <div className="absolute top-8 left-0 right-0 flex justify-center">
+            <div className="p-2 bg-gray-500/20 rounded-lg border border-white/10 backdrop-blur-sm">
+              <span className="pixel-text text-[10px] text-white/70">Egg Incubation Chamber</span>
             </div>
-          )}
-          
-          <div className="w-full h-1 bg-gray-500 rounded-full mt-8"></div>
-          <div className="w-1 h-2 bg-gray-500 rounded-full ml-1 mt-2"></div>
-        </div>
+          </div>
+        )}
         
-        <div className="absolute right-6 top-4 w-8 h-8 rounded-full border-2 border-blob-tertiary" style={{
-          boxShadow: '0 0 5px rgba(170, 85, 255, 0.5)'
-        }}>
-          <div className="w-4 h-1 bg-blob-tertiary absolute top-4 left-2 rounded-full transform origin-right rotate-45"></div>
-          <div className="w-3 h-1 bg-blob-tertiary absolute top-4 left-3 rounded-full transform origin-left -rotate-45"></div>
-          <div className="w-1 h-1 bg-white rounded-full absolute top-4 left-3.5"></div>
-        </div>
+        {evolutionLevel >= 2 && evolutionLevel <= 3 && (
+          <>
+            {/* Basic environment for blob phase */}
+            <div 
+              className={`absolute right-4 top-12 w-16 h-12 bg-gray-800 rounded-lg border-2 border-gray-700 cursor-pointer transition-all duration-300 ${isTvOn ? 'shadow-[0_0_8px_rgba(0,150,255,0.7)]' : ''}`}
+              onClick={handleTvClick}
+            >
+              <div className={`w-full h-8 rounded-t-sm overflow-hidden transition-colors duration-300 ${isTvOn ? 'bg-blue-400/80' : 'bg-gray-600/50'}`}>
+                {isTvOn ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-6 h-4 bg-yellow-400 animate-pulse"></div>
+                  </div>
+                ) : (
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping opacity-70 ml-2 mt-2"></div>
+                )}
+              </div>
+              <div className="flex justify-center mt-1 space-x-1">
+                <div className="w-1 h-1 bg-red-500 rounded-full"></div>
+                <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+              </div>
+            </div>
+            
+            <div 
+              className={`absolute left-4 top-12 w-10 h-14 bg-gray-300 rounded-sm border border-gray-500 cursor-pointer transition-transform duration-300 ${isFridgeOpen ? 'transform -translate-y-1' : ''}`}
+              onClick={handleFridgeClick}
+            >
+              <div className={`w-full h-8 bg-gray-200 rounded-t-sm border-b border-gray-500 transition-all duration-300 origin-left ${isFridgeOpen ? 'transform rotate-[60deg] shadow-md' : ''}`}>
+                <div className="w-1 h-2 bg-gray-500 rounded-full ml-auto mr-1 mt-2"></div>
+              </div>
+              
+              {isFridgeOpen && (
+                <div className="absolute top-1 left-1 w-8 h-6 bg-cyan-50 rounded-sm p-0.5">
+                  <div className="w-2 h-1.5 bg-blob-happy rounded-sm absolute top-1 left-1"></div>
+                  <div className="w-3 h-1.5 bg-blob-hungry rounded-sm absolute bottom-1 right-1"></div>
+                </div>
+              )}
+              
+              <div className="w-full h-1 bg-gray-500 rounded-full mt-8"></div>
+              <div className="w-1 h-2 bg-gray-500 rounded-full ml-1 mt-2"></div>
+            </div>
+            
+            <div className="absolute right-6 top-4 w-8 h-8 rounded-full border-2 border-blob-tertiary" style={{
+              boxShadow: '0 0 5px rgba(170, 85, 255, 0.5)'
+            }}>
+              <div className="w-4 h-1 bg-blob-tertiary absolute top-4 left-2 rounded-full transform origin-right rotate-45"></div>
+              <div className="w-3 h-1 bg-blob-tertiary absolute top-4 left-3 rounded-full transform origin-left -rotate-45"></div>
+              <div className="w-1 h-1 bg-white rounded-full absolute top-4 left-3.5"></div>
+            </div>
+          </>
+        )}
+        
+        {evolutionLevel >= 4 && evolutionLevel <= 6 && (
+          <BabyRoom onInteraction={handleToyInteraction} />
+        )}
+        
+        {evolutionLevel >= 7 && (
+          <AdultRoom onInteraction={handleToyInteraction} mood={mood} />
+        )}
         
         {mood === 'happy' && (
           <div className="absolute inset-0 pointer-events-none">
@@ -159,7 +186,10 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
         <Blob mood={mood} onClick={handleBlobClickWithSound} evolutionLevel={evolutionLevel} />
       </div>
 
-      <ToyBox onToyInteraction={handleToyInteraction} />
+      {/* Show toy box only for certain evolution levels */}
+      {evolutionLevel >= 3 && evolutionLevel < 7 && (
+        <ToyBox onToyInteraction={handleToyInteraction} />
+      )}
     </div>
   );
 };
