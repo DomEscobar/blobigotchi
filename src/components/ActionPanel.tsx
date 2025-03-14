@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ActionButton from './ActionButton';
 import { Utensils, Gamepad, Bath, Sparkles, Settings as SettingsIcon } from 'lucide-react';
 import { BlobStats } from '@/hooks/useBlobStats';
 import Settings from './Settings';
 import { useSettings } from '@/hooks/useSettings';
 import { useToast } from '@/hooks/use-toast';
+import { useSounds } from '@/hooks/useSounds';
 
 interface ActionPanelProps {
   stats: Pick<BlobStats, 'hunger' | 'energy' | 'hygiene'>;
@@ -24,6 +25,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { settings, updateSettings } = useSettings();
   const { toast } = useToast();
+  const { playSoundEffect } = useSounds();
   
   // Only show notifications if enabled in settings
   const handleAction = (action: () => void, message: string, icon: string) => {
@@ -34,19 +36,25 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   };
   
   // Play sounds only if enabled in settings
-  const playSound = (sound: string) => {
+  const playSound = (sound: 'feed' | 'play' | 'clean' | 'rest' | 'click') => {
     if (settings.sound) {
-      // Play the sound (this is a placeholder, implement actual sound logic if needed)
-      console.log(`Playing sound: ${sound}`);
+      playSoundEffect(sound);
     }
   };
   
   const handleSettingsClick = () => {
     setSettingsOpen(true);
+    playSound('click');
   };
   
   const handleSettingsChange = (newSettings: Partial<typeof settings>) => {
     updateSettings(newSettings);
+    
+    // Play a sound when settings are changed if sounds are enabled
+    // If we're enabling sounds, play a sound to demonstrate
+    if (newSettings.sound === true || (settings.sound && newSettings.sound !== false)) {
+      playSoundEffect('click');
+    }
     
     // Show feedback when settings are changed
     if (settings.notifications) {
@@ -65,7 +73,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           icon={Utensils} 
           onClick={() => {
             feedBlob();
-            if (settings.sound) playSound('feed');
+            playSound('feed');
             if (settings.notifications) showActionFeedback("Blob fed!", "🍔");
           }} 
           disabled={hunger >= 100}
@@ -75,7 +83,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           icon={Gamepad} 
           onClick={() => {
             playWithBlob();
-            if (settings.sound) playSound('play');
+            playSound('play');
             if (settings.notifications) showActionFeedback("Playing with blob!", "🎮");
           }}
           disabled={energy <= 10}
@@ -85,7 +93,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           icon={Bath} 
           onClick={() => {
             cleanBlob();
-            if (settings.sound) playSound('clean');
+            playSound('clean');
             if (settings.notifications) showActionFeedback("Blob cleaned!", "🧼");
           }}
           disabled={hygiene >= 100}
@@ -95,7 +103,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           icon={Sparkles} 
           onClick={() => {
             restBlob();
-            if (settings.sound) playSound('rest');
+            playSound('rest');
             if (settings.notifications) showActionFeedback("Blob is resting!", "💤");
           }}
           disabled={energy >= 100}

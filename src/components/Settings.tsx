@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { useSounds } from '@/hooks/useSounds';
 
 interface SettingsProps {
   open: boolean;
@@ -29,6 +30,23 @@ const Settings: React.FC<SettingsProps> = ({
   settings, 
   onSettingsChange 
 }) => {
+  const { playSoundEffect } = useSounds();
+  
+  const handleSoundToggle = (checked: boolean) => {
+    // If we're enabling sounds, play a sound
+    if (checked) {
+      playSoundEffect('click');
+    }
+    onSettingsChange({ sound: checked });
+  };
+  
+  const handleThemeChange = (value: SettingsProps['settings']['theme']) => {
+    if (settings.sound) {
+      playSoundEffect('click');
+    }
+    onSettingsChange({ theme: value });
+  };
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] bg-gray-800 text-white border-gray-700">
@@ -45,7 +63,7 @@ const Settings: React.FC<SettingsProps> = ({
             <Switch 
               id="sound" 
               checked={settings.sound}
-              onCheckedChange={(checked) => onSettingsChange({ sound: checked })}
+              onCheckedChange={handleSoundToggle}
               className="data-[state=checked]:bg-blob-secondary"
             />
           </div>
@@ -57,7 +75,10 @@ const Settings: React.FC<SettingsProps> = ({
             <Switch 
               id="notifications" 
               checked={settings.notifications}
-              onCheckedChange={(checked) => onSettingsChange({ notifications: checked })}
+              onCheckedChange={(checked) => {
+                if (settings.sound) playSoundEffect('click');
+                onSettingsChange({ notifications: checked });
+              }}
               className="data-[state=checked]:bg-blob-secondary"
             />
           </div>
@@ -68,7 +89,7 @@ const Settings: React.FC<SettingsProps> = ({
             <Label className="font-pixel">Theme</Label>
             <RadioGroup 
               defaultValue={settings.theme} 
-              onValueChange={(value) => onSettingsChange({ theme: value as SettingsProps['settings']['theme'] })}
+              onValueChange={handleThemeChange}
               className="grid grid-cols-2 gap-2"
             >
               <div className="flex items-center space-x-2 bg-gray-700/50 p-2 rounded-md">
