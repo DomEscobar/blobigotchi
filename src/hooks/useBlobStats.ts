@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { BlobMood } from '@/components/Blob';
 import { toast } from "sonner";
@@ -148,6 +147,8 @@ export function useBlobStats() {
 
   const handleBlobClick = () => {
     setHappiness(prev => Math.min(100, prev + 5));
+    setActionCounter(prev => prev + 1);
+    
     if (actionCounter % 5 === 0) {
       showActionFeedback('Blob loves the attention!', '❤️');
     }
