@@ -18,6 +18,9 @@ const BlobCanvas: React.FC<BlobCanvasProps> = ({
   onClick,
   className
 }) => {
+  // Scale factor to make items larger relative to the blob
+  const itemScaleFactor = 1.75; // Increase size by 75%
+  
   return (
     <div className={cn("relative w-full h-full flex items-center justify-center", className)}>
       <div className="relative">
@@ -32,10 +35,10 @@ const BlobCanvas: React.FC<BlobCanvasProps> = ({
               transform: `translate(${item.position.x}px, ${item.position.y}px)`,
               top: '50%',
               left: '50%',
-              marginLeft: -item.pixelSize.width / 2,
-              marginTop: -item.pixelSize.height / 2,
-              width: item.pixelSize.width,
-              height: item.pixelSize.height,
+              marginLeft: -(item.pixelSize.width * itemScaleFactor) / 2,
+              marginTop: -(item.pixelSize.height * itemScaleFactor) / 2,
+              width: item.pixelSize.width * itemScaleFactor,
+              height: item.pixelSize.height * itemScaleFactor,
             }}
           >
             <div
