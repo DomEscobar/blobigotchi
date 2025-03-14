@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { BlobMood } from '@/components/Blob';
 import { toast } from "sonner";
@@ -63,6 +64,9 @@ export function useBlobStats() {
   }, []);
 
   const showActionFeedback = (message: string, icon: string, important = false) => {
+    // Only show notifications if enabled in settings
+    if (!settings.notifications) return;
+    
     if (important) {
       toast(message, {
         description: icon.repeat(3),

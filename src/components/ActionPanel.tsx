@@ -21,19 +21,11 @@ interface ActionPanelProps {
 
 const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   const { hunger, energy, hygiene } = stats;
-  const { feedBlob, playWithBlob, cleanBlob, restBlob, showActionFeedback } = actions;
+  const { feedBlob, playWithBlob, cleanBlob, restBlob } = actions;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { settings, updateSettings } = useSettings();
   const { toast } = useToast();
   const { playSoundEffect } = useSounds();
-  
-  // Only show notifications if enabled in settings
-  const handleAction = (action: () => void, message: string, icon: string) => {
-    action();
-    if (settings.notifications) {
-      showActionFeedback(message, icon);
-    }
-  };
   
   // Play sounds only if enabled in settings
   const playSound = (sound: 'feed' | 'play' | 'clean' | 'rest' | 'click') => {
@@ -57,7 +49,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
     }
     
     // Show feedback when settings are changed
-    if (settings.notifications) {
+    if (settings.notifications || (newSettings.notifications && newSettings.notifications !== false)) {
       toast({
         title: "Settings updated",
         description: "Your preferences have been saved.",
@@ -74,7 +66,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           onClick={() => {
             feedBlob();
             playSound('feed');
-            if (settings.notifications) showActionFeedback("Blob fed!", "🍔");
           }} 
           disabled={hunger >= 100}
         />
@@ -84,7 +75,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           onClick={() => {
             playWithBlob();
             playSound('play');
-            if (settings.notifications) showActionFeedback("Playing with blob!", "🎮");
           }}
           disabled={energy <= 10}
         />
@@ -94,7 +84,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           onClick={() => {
             cleanBlob();
             playSound('clean');
-            if (settings.notifications) showActionFeedback("Blob cleaned!", "🧼");
           }}
           disabled={hygiene >= 100}
         />
@@ -104,7 +93,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           onClick={() => {
             restBlob();
             playSound('rest');
-            if (settings.notifications) showActionFeedback("Blob is resting!", "💤");
           }}
           disabled={energy >= 100}
         />
