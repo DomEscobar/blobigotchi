@@ -1,0 +1,67 @@
+
+/* Theme variables */
+:root {
+  --theme-bg: #1F1F1F;
+  --theme-accent: #4a4a4a;
+  --theme-primary: #FF5A5A;
+  --theme-secondary: #FFB74D;
+  --theme-tertiary: #64B5F6;
+}
+
+/* Blue theme */
+.theme-blue {
+  --theme-bg: #0D2B45;
+  --theme-accent: #203C56;
+  --theme-primary: #4D9BE6;
+  --theme-secondary: #5FC8E0;
+  --theme-tertiary: #73EFE8;
+}
+
+/* Green theme */
+.theme-green {
+  --theme-bg: #0F2B0E;
+  --theme-accent: #1A4D1A;
+  --theme-primary: #53C84E;
+  --theme-secondary: #87E667;
+  --theme-tertiary: #B8F3B6;
+}
+
+/* Pink theme */
+.theme-pink {
+  --theme-bg: #2D1832;
+  --theme-accent: #4A2D4F;
+  --theme-primary: #D44D99;
+  --theme-secondary: #F27EB6;
+  --theme-tertiary: #FFAFD1;
+}
+
+/* Apply theme colors to components */
+.theme-blue .blob-primary,
+.theme-green .blob-primary,
+.theme-pink .blob-primary {
+  color: var(--theme-primary);
+}
+
+.theme-blue .blob-secondary,
+.theme-green .blob-secondary,
+.theme-pink .blob-secondary {
+  color: var(--theme-secondary);
+}
+
+.theme-blue .blob-tertiary,
+.theme-green .blob-tertiary,
+.theme-pink .blob-tertiary {
+  color: var(--theme-tertiary);
+}
+
+.theme-blue .border-gray-800,
+.theme-green .border-gray-800,
+.theme-pink .border-gray-800 {
+  border-color: var(--theme-accent);
+}
+
+.theme-blue .bg-gray-900,
+.theme-green .bg-gray-900,
+.theme-pink .bg-gray-900 {
+  background-color: var(--theme-bg);
+}

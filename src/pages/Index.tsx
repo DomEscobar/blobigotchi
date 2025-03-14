@@ -8,13 +8,29 @@ import TitleBar from '@/components/TitleBar';
 import Footer from '@/components/Footer';
 import { useBlobStats } from '@/hooks/useBlobStats';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSettings } from '@/hooks/useSettings';
 
 const Index = () => {
   const isMobile = useIsMobile();
   const { stats, actions } = useBlobStats();
+  const { settings } = useSettings();
+  
+  // Get theme-specific classes
+  const getThemeClasses = () => {
+    switch(settings.theme) {
+      case 'blue':
+        return 'theme-blue';
+      case 'green':
+        return 'theme-green';
+      case 'pink':
+        return 'theme-pink';
+      default:
+        return '';
+    }
+  };
   
   return (
-    <div className="flex items-center justify-center min-h-screen p-2 md:p-4 bg-gray-900">
+    <div className={`flex items-center justify-center min-h-screen p-2 md:p-4 bg-gray-900 ${getThemeClasses()}`}>
       <div className="w-full max-w-md">
         <div className="relative">
           <CRTOverlay 
