@@ -1,4 +1,16 @@
-# Welcome to your Lovable project
+
+# Blob Pet - Virtual Pet Simulator
+
+## About
+
+Blob Pet is a virtual pet simulator inspired by classic digital pets. Take care of your pet blob as it evolves through different life stages from an egg to an adult. Monitor and maintain its stats like hunger, hygiene, happiness, and energy while watching it evolve.
+
+## Features
+
+- **Evolution System**: Watch your blob evolve through different stages - egg, basic blob, baby, and adult
+- **Interactive Environment**: Each evolution stage has a unique environment with interactive objects
+- **Stats Management**: Monitor and manage your pet's hunger, hygiene, happiness, and energy
+- **Responsive Design**: Enjoy the game on any device with a responsive layout
 
 ## Project info
 
@@ -36,23 +48,9 @@ npm i
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Technologies Used
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
+This project is built with:
 
 - Vite
 - TypeScript
@@ -64,6 +62,30 @@ This project is built with .
 
 Simply open [Lovable](https://lovable.dev/projects/1ed36deb-c688-40e8-b77f-7e1c157f9c18) and click on Share -> Publish.
 
-## I want to use a custom domain - is that possible?
+## Custom Domain
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
+## License
+
+MIT License
+
+Copyright (c) 2023 Blob Pet
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
