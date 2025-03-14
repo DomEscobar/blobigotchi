@@ -33,7 +33,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     >
       <div className="flex flex-col items-center gap-1">
         <Icon className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-blob-secondary group-hover:text-blob-primary transition-colors`} />
-        <span className={`pixel-text ${isMobile ? 'text-[8px]' : 'text-xs'} text-white`}>{label}</span>
+        <span className={`pixel-text ${isMobile ? 'text-[8px]' : 'text-xs'} text-white whitespace-nowrap`}>{label}</span>
       </div>
       <div className="absolute inset-0 bg-gradient-to-tr from-blob-primary/0 via-blob-secondary/0 to-blob-tertiary/0 group-hover:from-blob-primary/10 group-hover:via-blob-secondary/10 group-hover:to-blob-tertiary/10 transition-opacity"></div>
     </button>

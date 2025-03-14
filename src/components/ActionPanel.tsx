@@ -70,7 +70,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
     <>
       <div className="grid grid-cols-5 gap-1 p-2 md:p-3 bg-gray-900/70 border-t border-gray-700">
         <ActionButton 
-          label="Feed" 
+          label="FEED" 
           icon={Utensils} 
           onClick={() => {
             feedBlob();
@@ -79,7 +79,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           disabled={hunger >= 100}
         />
         <ActionButton 
-          label="Play" 
+          label="PLAY" 
           icon={Gamepad} 
           onClick={() => {
             playWithBlob();
@@ -88,7 +88,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           disabled={energy <= 10}
         />
         <ActionButton 
-          label="Clean" 
+          label="CLEAN" 
           icon={Bath} 
           onClick={() => {
             cleanBlob();
@@ -97,7 +97,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           disabled={hygiene >= 100}
         />
         <ActionButton 
-          label="Rest" 
+          label="REST" 
           icon={Sparkles} 
           onClick={() => {
             restBlob();
@@ -106,7 +106,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           disabled={energy >= 100}
         />
         <ActionButton 
-          label="Settings" 
+          label="SETTINGS" 
           icon={SettingsIcon} 
           onClick={handleSettingsClick}
         />
