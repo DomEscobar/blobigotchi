@@ -15,22 +15,8 @@ const Index = () => {
   const { stats, actions } = useBlobStats();
   const { settings } = useSettings();
   
-  // Get theme-specific classes
-  const getThemeClasses = () => {
-    switch(settings.theme) {
-      case 'blue':
-        return 'theme-blue';
-      case 'green':
-        return 'theme-green';
-      case 'pink':
-        return 'theme-pink';
-      default:
-        return '';
-    }
-  };
-  
   return (
-    <div className={`flex items-center justify-center min-h-screen p-2 md:p-4 bg-gray-900 ${getThemeClasses()}`}>
+    <div className="flex items-center justify-center min-h-screen p-2 md:p-4 bg-gray-900">
       <div className="w-full max-w-md">
         <div className="relative">
           <CRTOverlay 

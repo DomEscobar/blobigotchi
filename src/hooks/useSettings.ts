@@ -28,6 +28,20 @@ export function useSettings() {
     
     // Apply theme
     document.documentElement.setAttribute('data-theme', settings.theme);
+    
+    // Handle sound setting
+    if (settings.sound) {
+      document.documentElement.classList.remove('mute-sounds');
+    } else {
+      document.documentElement.classList.add('mute-sounds');
+    }
+    
+    // Handle notifications setting
+    if (settings.notifications) {
+      document.documentElement.classList.remove('disable-notifications');
+    } else {
+      document.documentElement.classList.add('disable-notifications');
+    }
   }, [settings]);
 
   const updateSettings = (newSettings: Partial<Settings>) => {

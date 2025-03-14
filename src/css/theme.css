@@ -9,7 +9,7 @@
 }
 
 /* Blue theme */
-.theme-blue {
+[data-theme="blue"] {
   --theme-bg: #0D2B45;
   --theme-accent: #203C56;
   --theme-primary: #4D9BE6;
@@ -18,7 +18,7 @@
 }
 
 /* Green theme */
-.theme-green {
+[data-theme="green"] {
   --theme-bg: #0F2B0E;
   --theme-accent: #1A4D1A;
   --theme-primary: #53C84E;
@@ -27,7 +27,7 @@
 }
 
 /* Pink theme */
-.theme-pink {
+[data-theme="pink"] {
   --theme-bg: #2D1832;
   --theme-accent: #4A2D4F;
   --theme-primary: #D44D99;
@@ -36,32 +36,32 @@
 }
 
 /* Apply theme colors to components */
-.theme-blue .blob-primary,
-.theme-green .blob-primary,
-.theme-pink .blob-primary {
+[data-theme="blue"] .blob-primary,
+[data-theme="green"] .blob-primary,
+[data-theme="pink"] .blob-primary {
   color: var(--theme-primary);
 }
 
-.theme-blue .blob-secondary,
-.theme-green .blob-secondary,
-.theme-pink .blob-secondary {
+[data-theme="blue"] .blob-secondary,
+[data-theme="green"] .blob-secondary,
+[data-theme="pink"] .blob-secondary {
   color: var(--theme-secondary);
 }
 
-.theme-blue .blob-tertiary,
-.theme-green .blob-tertiary,
-.theme-pink .blob-tertiary {
+[data-theme="blue"] .blob-tertiary,
+[data-theme="green"] .blob-tertiary,
+[data-theme="pink"] .blob-tertiary {
   color: var(--theme-tertiary);
 }
 
-.theme-blue .border-gray-800,
-.theme-green .border-gray-800,
-.theme-pink .border-gray-800 {
+[data-theme="blue"] .border-gray-800,
+[data-theme="green"] .border-gray-800,
+[data-theme="pink"] .border-gray-800 {
   border-color: var(--theme-accent);
 }
 
-.theme-blue .bg-gray-900,
-.theme-green .bg-gray-900,
-.theme-pink .bg-gray-900 {
+[data-theme="blue"] .bg-gray-900,
+[data-theme="green"] .bg-gray-900,
+[data-theme="pink"] .bg-gray-900 {
   background-color: var(--theme-bg);
 }
