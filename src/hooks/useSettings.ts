@@ -7,12 +7,14 @@ interface Settings {
   sound: boolean;
   notifications: boolean;
   theme: Theme;
+  devMode?: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
   sound: true,
   notifications: true,
-  theme: 'default'
+  theme: 'default',
+  devMode: false
 };
 
 export function useSettings() {

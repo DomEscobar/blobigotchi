@@ -105,6 +105,30 @@ export function useBlobStats() {
     });
   };
 
+  // Developer action handler
+  const handleDevAction = (action: string, value?: number) => {
+    if (action === 'levelUp' && value && value > 0) {
+      // For developer mode - directly increase evolution level
+      if (value === 1) {
+        // Increase progress by 50%
+        setEvolutionProgress(prev => {
+          const newProgress = prev + 50;
+          if (newProgress >= 100) {
+            setEvolutionLevel(prevLevel => prevLevel + 1);
+            showActionFeedback('DEV MODE: Level Up!', '🔧✨', true);
+            return newProgress - 100;
+          }
+          return newProgress;
+        });
+      } else {
+        // Directly increase multiple levels
+        setEvolutionLevel(prev => prev + (value - 1));
+        setEvolutionProgress(0);
+        showActionFeedback(`DEV MODE: Jumped to Level ${evolutionLevel + (value - 1)}!`, '🔧🔧✨', true);
+      }
+    }
+  };
+
   // Action handlers
   const feedBlob = () => {
     const newHunger = Math.min(100, hunger + 20);
@@ -176,7 +200,8 @@ export function useBlobStats() {
       cleanBlob,
       restBlob,
       handleBlobClick,
-      showActionFeedback
+      showActionFeedback,
+      handleDevAction
     }
   };
 }

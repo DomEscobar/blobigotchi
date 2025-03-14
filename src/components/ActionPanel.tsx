@@ -16,12 +16,13 @@ interface ActionPanelProps {
     cleanBlob: () => void;
     restBlob: () => void;
     showActionFeedback: (message: string, icon: string, important?: boolean) => void;
+    handleDevAction?: (action: string, value?: number) => void;
   };
 }
 
 const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   const { hunger, energy, hygiene } = stats;
-  const { feedBlob, playWithBlob, cleanBlob, restBlob } = actions;
+  const { feedBlob, playWithBlob, cleanBlob, restBlob, handleDevAction } = actions;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { settings, updateSettings } = useSettings();
   const { toast } = useToast();
@@ -49,11 +50,17 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
     }
     
     // Show feedback when settings are changed
-    if (settings.notifications || (newSettings.notifications && newSettings.notifications !== false)) {
+    if (settings.notifications || (newSettings.notifications !== false)) {
       toast({
         title: "Settings updated",
         description: "Your preferences have been saved.",
       });
+    }
+  };
+
+  const handleDevAction = (action: string, value?: number) => {
+    if (handleDevAction) {
+      actions.handleDevAction(action, value);
     }
   };
   
@@ -108,6 +115,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
         onOpenChange={setSettingsOpen}
         settings={settings}
         onSettingsChange={handleSettingsChange}
+        onDevAction={handleDevAction}
       />
     </>
   );
