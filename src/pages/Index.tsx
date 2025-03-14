@@ -27,7 +27,11 @@ const Index = () => {
               <StatsPanel stats={stats} />
               
               <div className="flex-1 relative">
-                <Habitat mood={stats.mood} onBlobClick={actions.handleBlobClick} />
+                <Habitat 
+                  mood={stats.mood} 
+                  onBlobClick={actions.handleBlobClick}
+                  evolutionLevel={stats.evolutionLevel} 
+                />
               </div>
               
               <ActionPanel stats={stats} actions={actions} />
