@@ -1,8 +1,9 @@
 
 import React from 'react';
 import ActionButton from './ActionButton';
-import { Utensils, Gamepad, Bath, Sparkles, Settings } from 'lucide-react';
+import { Utensils, Gamepad, Bath, Sparkles, Settings, Shirt } from 'lucide-react';
 import { BlobStats } from '@/hooks/useBlobStats';
+import { useNavigate } from 'react-router-dom';
 
 interface ActionPanelProps {
   stats: Pick<BlobStats, 'hunger' | 'energy' | 'hygiene'>;
@@ -18,9 +19,14 @@ interface ActionPanelProps {
 const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   const { hunger, energy, hygiene } = stats;
   const { feedBlob, playWithBlob, cleanBlob, restBlob, showActionFeedback } = actions;
+  const navigate = useNavigate();
+  
+  const goToFashionStudio = () => {
+    navigate('/fashion');
+  };
   
   return (
-    <div className="grid grid-cols-5 gap-1 p-2 md:p-3 bg-gray-900/70 border-t border-gray-700">
+    <div className="grid grid-cols-6 gap-1 p-2 md:p-3 bg-gray-900/70 border-t border-gray-700">
       <ActionButton 
         label="Feed" 
         icon={Utensils} 
@@ -44,6 +50,11 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
         icon={Sparkles} 
         onClick={restBlob}
         disabled={energy >= 100}
+      />
+      <ActionButton 
+        label="Fashion" 
+        icon={Shirt} 
+        onClick={goToFashionStudio}
       />
       <ActionButton 
         label="Settings" 
