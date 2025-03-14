@@ -106,7 +106,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           disabled={energy >= 100}
         />
         <ActionButton 
-          label="SETTINGS" 
+          label="CONFIG" 
           icon={SettingsIcon} 
           onClick={handleSettingsClick}
         />
