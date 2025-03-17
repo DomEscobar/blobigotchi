@@ -153,6 +153,25 @@ export function useWebRTC({
     return false;
   }, []);
   
+  // Disconnect from all peers and signaling server
+  const disconnect = useCallback(() => {
+    // Close all peer connections
+    Object.values(peerConnectionsRef.current).forEach(({ connection }) => {
+      connection.close();
+    });
+    
+    // Reset state
+    peerConnectionsRef.current = {};
+    setPeers([]);
+    setIsConnected(false);
+    
+    // Close WebSocket connection
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+  }, []);
+  
   // Connect to a signaling server for peer discovery (simulated)
   const connect = useCallback(() => {
     // In a real implementation, this would connect to a WebSocket server
@@ -190,25 +209,6 @@ export function useWebRTC({
       disconnect();
     };
   }, [disconnect, initPeerConnection]);
-  
-  // Disconnect from all peers and signaling server
-  const disconnect = useCallback(() => {
-    // Close all peer connections
-    Object.values(peerConnectionsRef.current).forEach(({ connection }) => {
-      connection.close();
-    });
-    
-    // Reset state
-    peerConnectionsRef.current = {};
-    setPeers([]);
-    setIsConnected(false);
-    
-    // Close WebSocket connection
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
-  }, []);
   
   // Clean up on unmount
   useEffect(() => {
