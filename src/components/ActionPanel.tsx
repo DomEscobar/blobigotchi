@@ -1,15 +1,16 @@
 
 import React, { useState } from 'react';
 import ActionButton from './ActionButton';
-import { Utensils, Gamepad, Bath, Sparkles, Settings as SettingsIcon } from 'lucide-react';
+import { Utensils, Gamepad, Bath, Sparkles, Settings as SettingsIcon, Globe } from 'lucide-react';
 import { BlobStats } from '@/hooks/useBlobStats';
 import Settings from './Settings';
 import { useSettings } from '@/hooks/useSettings';
 import { useToast } from '@/hooks/use-toast';
 import { useSounds } from '@/hooks/useSounds';
+import BlobMeet from './multiplayer/BlobMeet';
 
 interface ActionPanelProps {
-  stats: Pick<BlobStats, 'hunger' | 'energy' | 'hygiene'>;
+  stats: Pick<BlobStats, 'hunger' | 'energy' | 'hygiene' | 'evolutionLevel' | 'mood'>;
   actions: {
     feedBlob: () => void;
     playWithBlob: () => void;
@@ -21,10 +22,11 @@ interface ActionPanelProps {
 }
 
 const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
-  const { hunger, energy, hygiene } = stats;
+  const { hunger, energy, hygiene, evolutionLevel, mood } = stats;
   // Rename the destructured handleDevAction to devActionHandler to avoid naming conflicts
   const { feedBlob, playWithBlob, cleanBlob, restBlob, handleDevAction: devActionHandler } = actions;
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [blobMeetOpen, setBlobMeetOpen] = useState(false);
   const { settings, updateSettings } = useSettings();
   const { toast } = useToast();
   const { playSoundEffect } = useSounds();
@@ -38,6 +40,22 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   
   const handleSettingsClick = () => {
     setSettingsOpen(true);
+    playSound('click');
+  };
+  
+  const handleMultiplayerClick = () => {
+    // Check if blob has evolved enough to access the multiplayer feature
+    if (evolutionLevel < 4) {
+      toast({
+        title: "Evolution Required",
+        description: "Your blob must reach level 4 to access Blob Meet!",
+        variant: "destructive"
+      });
+      playSound('feed'); // Error sound
+      return;
+    }
+    
+    setBlobMeetOpen(true);
     playSound('click');
   };
   
@@ -68,7 +86,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   
   return (
     <>
-      <div className="grid grid-cols-5 gap-1 p-2 md:p-3 bg-gray-900/70 border-t border-gray-700">
+      <div className="grid grid-cols-6 gap-1 p-2 md:p-3 bg-gray-900/70 border-t border-gray-700">
         <ActionButton 
           label="FEED" 
           icon={Utensils} 
@@ -110,6 +128,12 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           icon={SettingsIcon} 
           onClick={handleSettingsClick}
         />
+        <ActionButton 
+          label="MEET" 
+          icon={Globe} 
+          onClick={handleMultiplayerClick}
+          disabled={evolutionLevel < 4}
+        />
       </div>
       
       <Settings 
@@ -119,6 +143,14 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
         onSettingsChange={handleSettingsChange}
         onDevAction={handleDevAction}
       />
+      
+      {blobMeetOpen && (
+        <BlobMeet 
+          onClose={() => setBlobMeetOpen(false)}
+          evolutionLevel={evolutionLevel}
+          mood={mood}
+        />
+      )}
     </>
   );
 };
