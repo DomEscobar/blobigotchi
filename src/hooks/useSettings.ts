@@ -8,13 +8,15 @@ interface Settings {
   notifications: boolean;
   theme: Theme;
   devMode?: boolean;
+  username: string;
 }
 
 const DEFAULT_SETTINGS: Settings = {
   sound: true,
   notifications: true,
   theme: 'default',
-  devMode: false
+  devMode: false,
+  username: `Blob Trainer ${Math.floor(Math.random() * 9000) + 1000}`
 };
 
 export function useSettings() {

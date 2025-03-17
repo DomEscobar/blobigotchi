@@ -8,6 +8,8 @@ import { useSounds } from '@/hooks/useSounds';
 import { useSettings } from '@/hooks/useSettings';
 import BabyRoom from './environments/BabyRoom';
 import AdultRoom from './environments/AdultRoom';
+import BattleArcade from './BattleArcade';
+import BlobBattlegrounds from './BlobBattlegrounds';
 
 interface HabitatProps {
   mood: BlobMood;
@@ -20,6 +22,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
   const isMobile = useIsMobile();
   const [isFridgeOpen, setIsFridgeOpen] = useState(false);
   const [isTvOn, setIsTvOn] = useState(false);
+  const [battlegroundsOpen, setBattlegroundsOpen] = useState(false);
   const { playSoundEffect } = useSounds();
   const { settings } = useSettings();
   
@@ -76,6 +79,15 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
     onBlobClick();
     onBlobClick();
   };
+  
+  const handleBattleArcadeClick = () => {
+    if (settings.sound) {
+      playSoundEffect('click');
+    }
+    
+    // Open battle arcade dialog
+    setBattlegroundsOpen(true);
+  };
 
   const getBgClass = () => {
     if (['sad', 'hungry', 'tired', 'sick'].includes(mood)) {
@@ -108,6 +120,11 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
             </div>
           </div>
         )}
+        
+        {/* Battle Arcade - available at all evolution levels */}
+        <div className="absolute top-4 right-4">
+          <BattleArcade onClick={handleBattleArcadeClick} isMobile={isMobile} />
+        </div>
         
         {evolutionLevel >= 2 && evolutionLevel <= 3 && (
           <>
@@ -190,6 +207,13 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
       {evolutionLevel >= 3 && evolutionLevel < 7 && (
         <ToyBox onToyInteraction={handleToyInteraction} />
       )}
+      
+      {/* Battle system dialog */}
+      <BlobBattlegrounds 
+        open={battlegroundsOpen}
+        onOpenChange={setBattlegroundsOpen}
+        evolutionLevel={evolutionLevel}
+      />
     </div>
   );
 };

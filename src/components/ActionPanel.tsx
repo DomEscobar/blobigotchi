@@ -7,9 +7,10 @@ import Settings from './Settings';
 import { useSettings } from '@/hooks/useSettings';
 import { useToast } from '@/hooks/use-toast';
 import { useSounds } from '@/hooks/useSounds';
+import BlobBattlegrounds from './BlobBattlegrounds';
 
 interface ActionPanelProps {
-  stats: Pick<BlobStats, 'hunger' | 'energy' | 'hygiene'>;
+  stats: Pick<BlobStats, 'hunger' | 'energy' | 'hygiene' | 'evolutionLevel'>;
   actions: {
     feedBlob: () => void;
     playWithBlob: () => void;
@@ -21,10 +22,11 @@ interface ActionPanelProps {
 }
 
 const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
-  const { hunger, energy, hygiene } = stats;
+  const { hunger, energy, hygiene, evolutionLevel } = stats;
   // Rename the destructured handleDevAction to devActionHandler to avoid naming conflicts
   const { feedBlob, playWithBlob, cleanBlob, restBlob, handleDevAction: devActionHandler } = actions;
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [battlegroundsOpen, setBattlegroundsOpen] = useState(false);
   const { settings, updateSettings } = useSettings();
   const { toast } = useToast();
   const { playSoundEffect } = useSounds();
@@ -38,6 +40,11 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   
   const handleSettingsClick = () => {
     setSettingsOpen(true);
+    playSound('click');
+  };
+  
+  const handleBattleClick = () => {
+    setBattlegroundsOpen(true);
     playSound('click');
   };
   
@@ -118,6 +125,12 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
         settings={settings}
         onSettingsChange={handleSettingsChange}
         onDevAction={handleDevAction}
+      />
+      
+      <BlobBattlegrounds
+        open={battlegroundsOpen}
+        onOpenChange={setBattlegroundsOpen}
+        evolutionLevel={evolutionLevel}
       />
     </>
   );
