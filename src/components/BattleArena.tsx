@@ -1,10 +1,10 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { Shield, Zap, Heart, Swords, MessageCircle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSettings } from '@/hooks/useSettings';
+import { useGunDB } from '@/hooks/useGunDB';
 import BattleBlob from './BattleBlob';
 
 interface BattleMove {
@@ -33,11 +33,30 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
   const [isChatOpen, setIsChatOpen] = useState(false);
   const isMobile = useIsMobile();
   const { settings } = useSettings();
+  const { recordBattle } = useGunDB();
+  const [moveHistory, setMoveHistory] = useState<string[]>([]);
   
-  // Get moves based on evolution level
+  useEffect(() => {
+    if (battleState?.lastMove && !moveHistory.includes(battleState.lastMove)) {
+      setMoveHistory(prev => [...prev, battleState.lastMove]);
+    }
+  }, [battleState?.lastMove, moveHistory]);
+  
+  useEffect(() => {
+    if (battleState?.gameOver && battleState.winner) {
+      recordBattle({
+        player1: settings.username,
+        player2: opponentName || 'CPU Opponent',
+        winner: battleState.winner === 'player' ? settings.username : opponentName || 'CPU Opponent',
+        date: Date.now(),
+        moves: moveHistory,
+      });
+      console.log('Battle recorded to GunDB');
+    }
+  }, [battleState?.gameOver, battleState?.winner, moveHistory, opponentName, recordBattle, settings.username]);
+  
   const getMoves = (): BattleMove[] => {
     if (evolutionLevel <= 3) {
-      // Baby blob moves
       return [
         { name: 'Milk Splash', description: 'A basic splash attack', icon: <Zap size={16} />, type: 'attack' },
         { name: 'Tummy Rush', description: 'Charge with your tummy!', icon: <Swords size={16} />, type: 'attack' },
@@ -45,7 +64,6 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
         { name: 'Baby Barrier', description: 'Reduce incoming damage', icon: <Shield size={16} />, type: 'defense' }
       ];
     } else if (evolutionLevel <= 6) {
-      // Child blob moves
       return [
         { name: 'Pixel Punch', description: 'A solid hit', icon: <Swords size={16} />, type: 'attack' },
         { name: 'Static Shock', description: 'Electrify your opponent', icon: <Zap size={16} />, type: 'attack' },
@@ -53,7 +71,6 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
         { name: 'Block Shield', description: 'Block incoming damage', icon: <Shield size={16} />, type: 'defense' }
       ];
     } else {
-      // Adult blob moves
       return [
         { name: 'Chaos Beam', description: 'A powerful energy attack', icon: <Zap size={16} />, type: 'attack' },
         { name: 'Pixel Uppercut', description: 'A devastating uppercut', icon: <Swords size={16} />, type: 'attack' },
@@ -96,7 +113,6 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
   
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden">
-      {/* Close button */}
       <button 
         onClick={() => {
           disconnect();
@@ -107,13 +123,11 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
         <X size={16} className="text-white" />
       </button>
       
-      {/* Top section - Opponent */}
       <div className="flex-1 bg-gray-800/70 flex flex-col items-center justify-center relative p-4 border-b border-gray-700">
         <div className="absolute top-2 left-2 z-10">
           <p className="pixel-text text-white text-xs">{opponentName || 'Opponent'}</p>
         </div>
         
-        {/* Opponent HP Bar */}
         <div className="absolute top-2 right-2 w-1/3 h-4 bg-gray-900 border border-gray-700 rounded-sm overflow-hidden">
           <div 
             className="h-full bg-red-500 transition-all duration-300"
@@ -121,7 +135,6 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
           ></div>
         </div>
         
-        {/* Opponent Blob */}
         <div className="transform scale-x-[-1]">
           <BattleBlob 
             mood="normal" 
@@ -132,7 +145,6 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
         </div>
       </div>
       
-      {/* Battle log */}
       <div className="h-16 bg-black/80 border-y border-gray-700 p-2 overflow-hidden">
         <p className="pixel-text text-white text-xs animate-fade-in">
           {battleState.lastMove ? (
@@ -154,13 +166,11 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
         </p>
       </div>
       
-      {/* Bottom section - Player */}
       <div className="flex-1 bg-gray-900/90 flex flex-col items-center justify-center relative p-4">
         <div className="absolute bottom-2 left-2 z-10">
           <p className="pixel-text text-white text-xs">{settings.username || 'You'}</p>
         </div>
         
-        {/* Player HP Bar */}
         <div className="absolute bottom-2 right-2 w-1/3 h-4 bg-gray-800 border border-gray-700 rounded-sm overflow-hidden">
           <div 
             className="h-full bg-green-500 transition-all duration-300"
@@ -168,7 +178,6 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
           ></div>
         </div>
         
-        {/* Player Blob */}
         <BattleBlob 
           mood="normal" 
           evolutionLevel={evolutionLevel} 
@@ -177,7 +186,6 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
         />
       </div>
       
-      {/* Battle controls */}
       <div className="h-32 bg-black/80 border-t border-gray-700 p-2">
         {isChatOpen ? (
           <div className="h-full flex flex-col">
@@ -238,7 +246,6 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
         )}
       </div>
       
-      {/* Chat toggle button */}
       <button 
         onClick={() => setIsChatOpen(!isChatOpen)}
         className="absolute bottom-2 left-1/2 transform -translate-x-1/2 translate-y-16 p-2 bg-gray-800 rounded-full border border-gray-700 z-20"

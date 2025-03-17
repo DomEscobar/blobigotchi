@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { useSettings } from '@/hooks/useSettings';
+import { useGunDB } from '@/hooks/useGunDB';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Gamepad, Users, Trophy, X } from 'lucide-react';
+import { Gamepad, Users, Trophy, X, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import BattleArena from './BattleArena';
 
@@ -20,7 +21,7 @@ const BlobBattlegrounds: React.FC<BlobBattlegroundsProps> = ({
   onOpenChange,
   evolutionLevel
 }) => {
-  const [battleView, setBattleView] = useState<'menu' | 'lobby' | 'battle'>('menu');
+  const [battleView, setBattleView] = useState<'menu' | 'lobby' | 'battle' | 'leaderboard'>('menu');
   const [inviteCode, setInviteCode] = useState('');
   
   const { 
@@ -34,6 +35,15 @@ const BlobBattlegrounds: React.FC<BlobBattlegroundsProps> = ({
   } = useWebRTC();
   
   const { settings } = useSettings();
+  const { profiles, battles, getRecentBattles } = useGunDB();
+  const [recentBattles, setRecentBattles] = useState([]);
+  
+  // Get recent battles when the leaderboard view is activated
+  useEffect(() => {
+    if (battleView === 'leaderboard') {
+      setRecentBattles(getRecentBattles());
+    }
+  }, [battleView, getRecentBattles]);
   
   // Handle closing the dialog
   const handleClose = () => {
@@ -51,6 +61,77 @@ const BlobBattlegrounds: React.FC<BlobBattlegroundsProps> = ({
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[90vw] max-h-[90vh] p-0 bg-crt-background border-blob-tertiary crt-screen">
           <BattleArena evolutionLevel={evolutionLevel} onClose={handleClose} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+  
+  // Render the leaderboard view
+  if (battleView === 'leaderboard' && open) {
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[500px] p-6 bg-crt-background border-blob-tertiary overflow-hidden">
+          <div className="absolute top-4 right-4">
+            <button onClick={handleClose} className="text-gray-400 hover:text-white">
+              <X size={20} />
+            </button>
+          </div>
+          
+          <h2 className="text-xl font-bold text-center text-white pixel-text mb-6">
+            BLOB BATTLEGROUNDS - LEADERBOARD
+          </h2>
+          
+          <div className="space-y-4">
+            <div className="bg-black/50 rounded-lg border border-blob-tertiary/50 p-4">
+              <h3 className="text-blob-secondary pixel-text mb-3">Recent Battles</h3>
+              
+              {recentBattles.length === 0 ? (
+                <p className="text-gray-400 text-sm pixel-text">No battles recorded yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {recentBattles.map((battle: any) => (
+                    <div key={battle.id} className="border-b border-gray-800 pb-2 flex justify-between">
+                      <div className="text-sm">
+                        <span className="text-white pixel-text">{battle.player1}</span>
+                        <span className="text-gray-400 pixel-text"> vs </span>
+                        <span className="text-white pixel-text">{battle.player2}</span>
+                      </div>
+                      <div className="text-xs">
+                        <span className="text-green-400 pixel-text">Winner: {battle.winner}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="bg-black/50 rounded-lg border border-blob-tertiary/50 p-4">
+              <h3 className="text-blob-secondary pixel-text mb-3">Top Trainers</h3>
+              
+              {Object.keys(profiles).length === 0 ? (
+                <p className="text-gray-400 text-sm pixel-text">No trainers found</p>
+              ) : (
+                <div className="space-y-2">
+                  {Object.values(profiles)
+                    .sort((a: any, b: any) => (b.wins || 0) - (a.wins || 0))
+                    .slice(0, 5)
+                    .map((profile: any) => (
+                      <div key={profile.username} className="border-b border-gray-800 pb-2 flex justify-between">
+                        <span className="text-white pixel-text">{profile.username}</span>
+                        <span className="text-yellow-400 pixel-text">{profile.wins || 0} W / {profile.losses || 0} L</span>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+            
+            <button
+              onClick={() => setBattleView('menu')}
+              className="mt-4 w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded pixel-text"
+            >
+              Back to Menu
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     );
@@ -108,6 +189,19 @@ const BlobBattlegrounds: React.FC<BlobBattlegroundsProps> = ({
                   <div className="flex items-center space-x-3">
                     <Trophy className="text-yellow-500 group-hover:text-yellow-400" />
                     <span className="pixel-text text-white">PRACTICE BATTLE</span>
+                  </div>
+                  <span className="text-gray-400 text-xs">→</span>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => setBattleView('leaderboard')}
+                className="pixel-button group p-4 border-gray-700 hover:border-blob-tertiary"
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center space-x-3">
+                    <List className="text-blue-500 group-hover:text-blue-400" />
+                    <span className="pixel-text text-white">LEADERBOARD</span>
                   </div>
                   <span className="text-gray-400 text-xs">→</span>
                 </div>
