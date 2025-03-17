@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import ActionButton from './ActionButton';
 import { Utensils, Gamepad, Bath, Sparkles, Settings as SettingsIcon, Globe } from 'lucide-react';
@@ -23,7 +22,6 @@ interface ActionPanelProps {
 
 const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   const { hunger, energy, hygiene, evolutionLevel, mood } = stats;
-  // Rename the destructured handleDevAction to devActionHandler to avoid naming conflicts
   const { feedBlob, playWithBlob, cleanBlob, restBlob, handleDevAction: devActionHandler } = actions;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [blobMeetOpen, setBlobMeetOpen] = useState(false);
@@ -31,7 +29,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   const { toast } = useToast();
   const { playSoundEffect } = useSounds();
   
-  // Play sounds only if enabled in settings
   const playSound = (sound: 'feed' | 'play' | 'clean' | 'rest' | 'click') => {
     if (settings.sound) {
       playSoundEffect(sound);
@@ -44,17 +41,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   };
   
   const handleMultiplayerClick = () => {
-    // Check if blob has evolved enough to access the multiplayer feature
-    if (evolutionLevel < 4) {
-      toast({
-        title: "Evolution Required",
-        description: "Your blob must reach level 4 to access Blob Meet!",
-        variant: "destructive"
-      });
-      playSound('feed'); // Error sound
-      return;
-    }
-    
     setBlobMeetOpen(true);
     playSound('click');
   };
@@ -62,13 +48,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   const handleSettingsChange = (newSettings: Partial<typeof settings>) => {
     updateSettings(newSettings);
     
-    // Play a sound when settings are changed if sounds are enabled
-    // If we're enabling sounds, play a sound to demonstrate
     if (newSettings.sound === true || (settings.sound && newSettings.sound !== false)) {
       playSoundEffect('click');
     }
     
-    // Show feedback when settings are changed
     if (settings.notifications || (newSettings.notifications !== false)) {
       toast({
         title: "Settings updated",
@@ -77,7 +60,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
     }
   };
 
-  // Create a wrapper function to handle developer actions
   const handleDevAction = (action: string, value?: number) => {
     if (devActionHandler) {
       devActionHandler(action, value);
@@ -132,7 +114,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           label="MEET" 
           icon={Globe} 
           onClick={handleMultiplayerClick}
-          disabled={evolutionLevel < 4}
         />
       </div>
       

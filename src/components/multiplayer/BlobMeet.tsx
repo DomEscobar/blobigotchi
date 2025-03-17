@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Network, Users, MessageCircle, Gamepad } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,10 +42,8 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
   const { settings } = useSettings();
   const { playSoundEffect } = useSounds();
   
-  // Generate a unique session ID for this user
   const localIdRef = useRef(`user_${Math.floor(Math.random() * 1000000)}`);
   
-  // Play sound effect if enabled in settings
   const playSound = (sound: 'connect' | 'disconnect' | 'message' | 'error' | 'success') => {
     if (settings.sound) {
       switch (sound) {
@@ -69,7 +66,6 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
     }
   };
 
-  // Handle connection to public lobby
   const connectToPublicLobby = () => {
     setConnectionType('public');
     setIsConnecting(true);
@@ -82,7 +78,6 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
     });
   };
 
-  // Handle connection via friend code
   const connectViaFriendCode = () => {
     if (!friendCode.trim()) {
       toast({
@@ -104,16 +99,11 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
     });
   };
 
-  // Initialize WebSocket connection for signaling
   const initializeWebSocketConnection = (code?: string) => {
-    // In a real implementation, this would connect to a WebSocket server
-    // For the demo, we'll simulate the connection
-    
     setTimeout(() => {
       setIsConnecting(false);
       setIsConnected(true);
       
-      // Simulate other peers joining
       const fakePeers: PeerData[] = [
         {
           id: 'user_123456',
@@ -141,7 +131,6 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
         description: `${fakePeers.length} other blobs found in the arcade`,
       });
       
-      // Simulate receiving a welcome message
       setTimeout(() => {
         setMessages([
           { 
@@ -154,32 +143,26 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
     }, 3000);
   };
 
-  // Cleanup connections on unmount
   useEffect(() => {
     return () => {
-      // Close all peer connections
       Object.values(peerConnectionsRef.current).forEach(conn => {
         conn.close();
       });
       
-      // Close WebSocket connection
       if (wsRef.current) {
         wsRef.current.close();
       }
     };
   }, []);
 
-  // Handle sending a message or command
   const sendMessage = () => {
     if (!currentMessage.trim()) return;
     
-    // Handle slash commands
     if (currentMessage.startsWith('/')) {
       const command = currentMessage.split(' ')[0].substring(1);
       
       switch (command) {
         case 'dance':
-          // Simulate sending dance action to peers
           setMessages(prev => [...prev, { text: "You started dancing!", sender: "SYSTEM" }]);
           setTimeout(() => {
             setMessages(prev => [...prev, { 
@@ -220,10 +203,8 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
           }]);
       }
     } else {
-      // Regular chat message
       setMessages(prev => [...prev, { text: currentMessage, sender: "You" }]);
       
-      // Simulate response
       setTimeout(() => {
         setMessages(prev => [...prev, { 
           text: "Hello there! Nice blob you have!", 
@@ -237,7 +218,6 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
     setCurrentMessage('');
   };
 
-  // Handle disconnect
   const handleDisconnect = () => {
     setIsConnected(false);
     setPeers([]);
@@ -251,7 +231,6 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
     });
   };
 
-  // Render the loading/connecting screen
   if (isConnecting) {
     return (
       <div className="absolute inset-0 bg-crt-background/95 z-50 flex flex-col items-center justify-center">
@@ -279,11 +258,9 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
     );
   }
 
-  // Render the connected arcade view
   if (isConnected) {
     return (
       <div className="absolute inset-0 bg-crt-background/95 z-50 flex flex-col">
-        {/* Header with connection info */}
         <div className="bg-gray-900 p-2 flex justify-between items-center border-b border-gray-700">
           <div className="flex items-center">
             <Network className="w-4 h-4 text-green-500 mr-1" />
@@ -303,9 +280,7 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
           </Button>
         </div>
         
-        {/* Main arcade area */}
         <div className="flex-1 relative overflow-hidden" style={{ background: 'repeating-linear-gradient(0deg, #111 0px, #111 2px, #222 2px, #222 4px)' }}>
-          {/* Arcade decoration elements */}
           <div className="absolute top-4 left-4 w-12 h-6 bg-pink-600 rounded-sm shadow-[0_0_8px_rgba(236,72,153,0.6)] flex items-center justify-center">
             <span className="text-white text-[8px]">GAMES</span>
           </div>
@@ -314,9 +289,7 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
             <span className="text-white text-[8px]">SHOP</span>
           </div>
           
-          {/* Render local player */}
-          <div 
-            className="absolute w-12 h-12 transition-all duration-200"
+          <div className="absolute w-12 h-12 transition-all duration-200"
             style={{ 
               left: `${localPosition.x}%`, 
               top: `${localPosition.y}%`,
@@ -329,7 +302,6 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
             <div className="text-white text-[8px] text-center mt-1">You</div>
           </div>
           
-          {/* Render other players */}
           {peers.map((peer) => (
             <div 
               key={peer.id}
@@ -355,13 +327,11 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
             </div>
           ))}
           
-          {/* Mini-game zone */}
           <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 w-20 h-20 border-2 border-dashed border-yellow-400 rounded-full flex items-center justify-center">
             <Gamepad className="w-6 h-6 text-yellow-400" />
           </div>
         </div>
         
-        {/* Chat/interaction panel */}
         <div className="h-1/3 bg-gray-900 border-t border-gray-700 p-2 flex flex-col">
           <div className="flex-1 overflow-y-auto mb-2 bg-gray-950 rounded p-2">
             {messages.map((msg, i) => (
@@ -403,7 +373,6 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
     );
   }
 
-  // Render the initial connection screen
   return (
     <div className="absolute inset-0 bg-crt-background/95 z-50 flex flex-col">
       <div className="bg-gray-900 p-2 flex justify-between items-center border-b border-gray-700">
@@ -466,8 +435,8 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
         </div>
         
         <div className="mt-8 text-gray-500 text-xs text-center">
-          <p>Your Blob must be at least level 4 to use all features</p>
-          <p className="mt-1">Current Level: {evolutionLevel}</p>
+          <p>Connect and play with other blobs online!</p>
+          <p className="mt-1">Your Evolution Level: {evolutionLevel}</p>
         </div>
       </div>
     </div>
