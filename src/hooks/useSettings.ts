@@ -7,7 +7,6 @@ interface Settings {
   sound: boolean;
   notifications: boolean;
   theme: Theme;
-  username?: string;
   devMode?: boolean;
 }
 
@@ -15,7 +14,6 @@ const DEFAULT_SETTINGS: Settings = {
   sound: true,
   notifications: true,
   theme: 'default',
-  username: 'BlobUser' + Math.floor(Math.random() * 1000),
   devMode: false
 };
 

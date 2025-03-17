@@ -1,15 +1,15 @@
+
 import React, { useState } from 'react';
 import ActionButton from './ActionButton';
-import { Utensils, Gamepad, Bath, Sparkles, Settings as SettingsIcon, Globe } from 'lucide-react';
+import { Utensils, Gamepad, Bath, Sparkles, Settings as SettingsIcon } from 'lucide-react';
 import { BlobStats } from '@/hooks/useBlobStats';
 import Settings from './Settings';
 import { useSettings } from '@/hooks/useSettings';
 import { useToast } from '@/hooks/use-toast';
 import { useSounds } from '@/hooks/useSounds';
-import BlobMeet from './multiplayer/BlobMeet';
 
 interface ActionPanelProps {
-  stats: Pick<BlobStats, 'hunger' | 'energy' | 'hygiene' | 'evolutionLevel' | 'mood'>;
+  stats: Pick<BlobStats, 'hunger' | 'energy' | 'hygiene'>;
   actions: {
     feedBlob: () => void;
     playWithBlob: () => void;
@@ -21,14 +21,15 @@ interface ActionPanelProps {
 }
 
 const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
-  const { hunger, energy, hygiene, evolutionLevel, mood } = stats;
+  const { hunger, energy, hygiene } = stats;
+  // Rename the destructured handleDevAction to devActionHandler to avoid naming conflicts
   const { feedBlob, playWithBlob, cleanBlob, restBlob, handleDevAction: devActionHandler } = actions;
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [blobMeetOpen, setBlobMeetOpen] = useState(false);
   const { settings, updateSettings } = useSettings();
   const { toast } = useToast();
   const { playSoundEffect } = useSounds();
   
+  // Play sounds only if enabled in settings
   const playSound = (sound: 'feed' | 'play' | 'clean' | 'rest' | 'click') => {
     if (settings.sound) {
       playSoundEffect(sound);
@@ -40,18 +41,16 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
     playSound('click');
   };
   
-  const handleMultiplayerClick = () => {
-    setBlobMeetOpen(true);
-    playSound('click');
-  };
-  
   const handleSettingsChange = (newSettings: Partial<typeof settings>) => {
     updateSettings(newSettings);
     
+    // Play a sound when settings are changed if sounds are enabled
+    // If we're enabling sounds, play a sound to demonstrate
     if (newSettings.sound === true || (settings.sound && newSettings.sound !== false)) {
       playSoundEffect('click');
     }
     
+    // Show feedback when settings are changed
     if (settings.notifications || (newSettings.notifications !== false)) {
       toast({
         title: "Settings updated",
@@ -60,6 +59,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
     }
   };
 
+  // Create a wrapper function to handle developer actions
   const handleDevAction = (action: string, value?: number) => {
     if (devActionHandler) {
       devActionHandler(action, value);
@@ -68,7 +68,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   
   return (
     <>
-      <div className="grid grid-cols-6 gap-1 p-2 md:p-3 bg-gray-900/70 border-t border-gray-700">
+      <div className="grid grid-cols-5 gap-1 p-2 md:p-3 bg-gray-900/70 border-t border-gray-700">
         <ActionButton 
           label="FEED" 
           icon={Utensils} 
@@ -110,11 +110,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
           icon={SettingsIcon} 
           onClick={handleSettingsClick}
         />
-        <ActionButton 
-          label="MEET" 
-          icon={Globe} 
-          onClick={handleMultiplayerClick}
-        />
       </div>
       
       <Settings 
@@ -124,14 +119,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
         onSettingsChange={handleSettingsChange}
         onDevAction={handleDevAction}
       />
-      
-      {blobMeetOpen && (
-        <BlobMeet 
-          onClose={() => setBlobMeetOpen(false)}
-          evolutionLevel={evolutionLevel}
-          mood={mood}
-        />
-      )}
     </>
   );
 };
