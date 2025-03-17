@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Network, Users, MessageCircle, Gamepad } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { BlobMood } from '@/components/Blob';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/hooks/useSettings';
 import { useSounds } from '@/hooks/useSounds';
+import useWebRTC from '@/hooks/useWebRTC';
 
 interface BlobMeetProps {
   onClose: () => void;
@@ -25,24 +27,78 @@ interface PeerData {
 }
 
 const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) => {
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
   const [connectionType, setConnectionType] = useState<'public' | 'friend' | null>(null);
-  const [peers, setPeers] = useState<PeerData[]>([]);
   const [friendCode, setFriendCode] = useState('');
   const [localPosition, setLocalPosition] = useState({ x: 50, y: 50 });
   const [messages, setMessages] = useState<{text: string, sender: string}[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
+  const [peerPositions, setPeerPositions] = useState<Record<string, PeerData>>({});
+  const [roomCode, setRoomCode] = useState<string>('');
   
-  const peerConnectionsRef = useRef<Record<string, RTCPeerConnection>>({});
-  const dataChannelsRef = useRef<Record<string, RTCDataChannel>>({});
-  const wsRef = useRef<WebSocket | null>(null);
-  
+  const localIdRef = useRef(`user_${Math.floor(Math.random() * 1000000)}`);
+  const lastPositionUpdateRef = useRef(Date.now());
   const { toast } = useToast();
   const { settings } = useSettings();
   const { playSoundEffect } = useSounds();
   
-  const localIdRef = useRef(`user_${Math.floor(Math.random() * 1000000)}`);
+  // WebRTC connection
+  const {
+    isConnected,
+    isConnecting,
+    peers,
+    error,
+    connect,
+    disconnect,
+    sendData, 
+    sendDataToPeer
+  } = useWebRTC({
+    userId: localIdRef.current,
+    roomId: roomCode,
+    onPeerConnect: (peerId) => {
+      playSound('connect');
+      
+      // Send my initial data to the new peer
+      sendDataToPeer(peerId, {
+        type: 'init',
+        id: localIdRef.current,
+        mood,
+        evolutionLevel,
+        x: localPosition.x,
+        y: localPosition.y,
+        username: settings.username || 'Anonymous Blob'
+      });
+      
+      // Add system message
+      setMessages(prev => [...prev, { 
+        text: `${peerId.startsWith('sim_') ? 'A blob' : 'Someone'} joined`, 
+        sender: "SYSTEM" 
+      }]);
+      
+      toast({
+        title: "New connection!",
+        description: "Another blob has joined",
+      });
+    },
+    onPeerDisconnect: (peerId) => {
+      playSound('disconnect');
+      
+      // Remove peer from positions
+      setPeerPositions(prev => {
+        const newPositions = {...prev};
+        delete newPositions[peerId];
+        return newPositions;
+      });
+      
+      // Add system message
+      setMessages(prev => [...prev, { 
+        text: `${peerPositions[peerId]?.username || 'Someone'} left`, 
+        sender: "SYSTEM" 
+      }]);
+    },
+    onPeerData: (peerId, data) => {
+      handlePeerData(peerId, data);
+    }
+  });
   
   const playSound = (sound: 'connect' | 'disconnect' | 'message' | 'error' | 'success') => {
     if (settings.sound) {
@@ -66,16 +122,99 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
     }
   };
 
+  const handlePeerData = (peerId: string, data: any) => {
+    if (!data || !data.type) return;
+    
+    switch (data.type) {
+      case 'init':
+        // Received initial peer data
+        setPeerPositions(prev => ({
+          ...prev,
+          [peerId]: {
+            id: peerId,
+            mood: data.mood || 'normal',
+            evolutionLevel: data.evolutionLevel || 1,
+            x: data.x || 50,
+            y: data.y || 50,
+            username: data.username || 'Unknown Blob'
+          }
+        }));
+        break;
+        
+      case 'position':
+        // Update peer position
+        setPeerPositions(prev => {
+          if (!prev[peerId]) return prev;
+          return {
+            ...prev,
+            [peerId]: {
+              ...prev[peerId],
+              x: data.x,
+              y: data.y
+            }
+          };
+        });
+        break;
+        
+      case 'action':
+        // Handle peer action (emote, etc)
+        setPeerPositions(prev => {
+          if (!prev[peerId]) return prev;
+          return {
+            ...prev,
+            [peerId]: {
+              ...prev[peerId],
+              action: data.action
+            }
+          };
+        });
+        
+        // Add to messages if it's a global action
+        if (data.message) {
+          setMessages(prev => [...prev, { 
+            text: data.message, 
+            sender: peerPositions[peerId]?.username || 'Unknown Blob' 
+          }]);
+          playSound('message');
+        }
+        break;
+        
+      case 'chat':
+        // Handle chat message
+        setMessages(prev => [...prev, { 
+          text: data.text, 
+          sender: peerPositions[peerId]?.username || 'Unknown Blob' 
+        }]);
+        playSound('message');
+        break;
+        
+      case 'mood':
+        // Update peer mood
+        setPeerPositions(prev => {
+          if (!prev[peerId]) return prev;
+          return {
+            ...prev,
+            [peerId]: {
+              ...prev[peerId],
+              mood: data.mood
+            }
+          };
+        });
+        break;
+    }
+  };
+
   const connectToPublicLobby = () => {
     setConnectionType('public');
-    setIsConnecting(true);
-    initializeWebSocketConnection();
-    playSound('connect');
+    const generatedRoomCode = Math.random().toString(36).substring(2, 7);
+    setRoomCode(generatedRoomCode);
     
     toast({
       title: "Connecting to Blob Network...",
       description: "Looking for other blobs to meet!",
     });
+    
+    connect();
   };
 
   const connectViaFriendCode = () => {
@@ -89,111 +228,89 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
     }
     
     setConnectionType('friend');
-    setIsConnecting(true);
-    initializeWebSocketConnection(friendCode);
-    playSound('connect');
+    setRoomCode(friendCode);
     
     toast({
       title: "Connecting to friend...",
       description: `Trying to connect with code: ${friendCode}`,
     });
+    
+    connect(friendCode);
   };
 
-  const initializeWebSocketConnection = (code?: string) => {
-    setTimeout(() => {
-      setIsConnecting(false);
-      setIsConnected(true);
+  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isConnected) return;
+    
+    const container = e.currentTarget;
+    const rect = container.getBoundingClientRect();
+    
+    // Get coordinates (works for both mouse and touch)
+    const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+    const pageY = 'touches' in e ? e.touches[0].pageY : e.pageY;
+    
+    // Calculate position as percentage of container
+    const x = Math.max(0, Math.min(100, ((pageX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((pageY - rect.top) / rect.height) * 100));
+    
+    setLocalPosition({ x, y });
+    
+    // Don't spam position updates, throttle to every 100ms
+    if (Date.now() - lastPositionUpdateRef.current > 100) {
+      lastPositionUpdateRef.current = Date.now();
       
-      const fakePeers: PeerData[] = [
-        {
-          id: 'user_123456',
-          mood: 'happy',
-          evolutionLevel: Math.floor(Math.random() * 3) + 5,
-          x: 30,
-          y: 70,
-          username: 'CoolBlob42'
-        },
-        {
-          id: 'user_789012',
-          mood: 'normal',
-          evolutionLevel: Math.floor(Math.random() * 3) + 4,
-          x: 70,
-          y: 30,
-          username: 'BlobMaster99'
-        }
-      ];
-      
-      setPeers(fakePeers);
-      playSound('success');
-      
-      toast({
-        title: "Connected!",
-        description: `${fakePeers.length} other blobs found in the arcade`,
+      // Send position update to all peers
+      sendData({
+        type: 'position',
+        x,
+        y
       });
-      
-      setTimeout(() => {
-        setMessages([
-          { 
-            text: "Welcome to Blob Arcade! Use /dance, /feed, or /wave to interact.", 
-            sender: "SYSTEM" 
-          }
-        ]);
-        playSound('message');
-      }, 1000);
-    }, 3000);
+    }
   };
-
-  useEffect(() => {
-    return () => {
-      Object.values(peerConnectionsRef.current).forEach(conn => {
-        conn.close();
-      });
-      
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, []);
-
+  
   const sendMessage = () => {
     if (!currentMessage.trim()) return;
     
     if (currentMessage.startsWith('/')) {
-      const command = currentMessage.split(' ')[0].substring(1);
+      const commandParts = currentMessage.split(' ');
+      const command = commandParts[0].substring(1);
       
       switch (command) {
         case 'dance':
           setMessages(prev => [...prev, { text: "You started dancing!", sender: "SYSTEM" }]);
-          setTimeout(() => {
-            setMessages(prev => [...prev, { 
-              text: "CoolBlob42 is dancing with you!", 
-              sender: "SYSTEM" 
-            }]);
-          }, 1000);
+          
+          // Send action to peers
+          sendData({
+            type: 'action',
+            action: 'dance',
+            message: `${settings.username || 'Someone'} is dancing!`
+          });
           break;
           
         case 'feed':
-          const food = currentMessage.split(' ')[1] || 'snack';
+          const food = commandParts[1] || 'snack';
           setMessages(prev => [...prev, { 
             text: `You offered a ${food} to everyone!`, 
             sender: "SYSTEM" 
           }]);
-          setTimeout(() => {
-            setMessages(prev => [...prev, { 
-              text: "BlobMaster99 enjoyed your " + food + "!", 
-              sender: "SYSTEM" 
-            }]);
-          }, 1000);
+          
+          // Send action to peers
+          sendData({
+            type: 'action',
+            action: 'feed',
+            foodType: food,
+            message: `${settings.username || 'Someone'} offered you a ${food}!`
+          });
           break;
           
         case 'wave':
           setMessages(prev => [...prev, { text: "You waved hello!", sender: "SYSTEM" }]);
-          setTimeout(() => {
-            setMessages(prev => [...prev, { 
-              text: "Everyone waves back at you!", 
-              sender: "SYSTEM" 
-            }]);
-          }, 1000);
+          
+          // Send action to peers
+          sendData({
+            type: 'action',
+            action: 'wave',
+            message: `${settings.username || 'Someone'} waved at everyone!`
+          });
           break;
           
         default:
@@ -203,15 +320,14 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
           }]);
       }
     } else {
+      // Regular chat message
       setMessages(prev => [...prev, { text: currentMessage, sender: "You" }]);
       
-      setTimeout(() => {
-        setMessages(prev => [...prev, { 
-          text: "Hello there! Nice blob you have!", 
-          sender: "CoolBlob42" 
-        }]);
-        playSound('message');
-      }, 1500);
+      // Send to all peers
+      sendData({
+        type: 'chat',
+        text: currentMessage
+      });
     }
     
     playSound('message');
@@ -219,10 +335,7 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
   };
 
   const handleDisconnect = () => {
-    setIsConnected(false);
-    setPeers([]);
-    setMessages([]);
-    playSound('disconnect');
+    disconnect();
     onClose();
     
     toast({
@@ -230,6 +343,30 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
       description: "You've left the Blob Arcade",
     });
   };
+
+  // Effect to show welcome message when connected
+  useEffect(() => {
+    if (isConnected) {
+      setTimeout(() => {
+        setMessages([
+          { 
+            text: connectionType === 'friend' 
+              ? `You're in room: ${roomCode}. Share this code with friends!` 
+              : "Welcome to Blob Arcade! Use /dance, /feed, or /wave to interact.", 
+            sender: "SYSTEM" 
+          }
+        ]);
+        playSound('message');
+      }, 1000);
+    }
+  }, [isConnected, connectionType, roomCode]);
+  
+  // Cleanup connections on unmount
+  useEffect(() => {
+    return () => {
+      disconnect();
+    };
+  }, [disconnect]);
 
   if (isConnecting) {
     return (
@@ -241,14 +378,14 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
           <div className="w-3 h-3 bg-blob-primary animate-pulse" style={{ animationDelay: '0.4s' }}></div>
         </div>
         <div className="pixel-text text-xs text-gray-400 max-w-xs text-center">
-          Establishing P2P connections via BlobNet...
+          {error ? `Error: ${error}` : 'Establishing P2P connections via BlobNet...'}
         </div>
         <Button 
           variant="destructive" 
           size="sm" 
           className="mt-6"
           onClick={() => {
-            setIsConnecting(false);
+            disconnect();
             onClose();
           }}
         >
@@ -259,16 +396,21 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
   }
 
   if (isConnected) {
+    const allPeers = Object.values(peerPositions);
+    
     return (
       <div className="absolute inset-0 bg-crt-background/95 z-50 flex flex-col">
         <div className="bg-gray-900 p-2 flex justify-between items-center border-b border-gray-700">
           <div className="flex items-center">
             <Network className="w-4 h-4 text-green-500 mr-1" />
             <span className="pixel-text text-white text-xs">BLOB ARCADE</span>
+            {connectionType === 'friend' && (
+              <span className="pixel-text text-xs text-cyan-400 ml-2">ROOM: {roomCode}</span>
+            )}
           </div>
           <div className="flex items-center">
             <Users className="w-4 h-4 text-cyan-400 mr-1" />
-            <span className="pixel-text text-white text-xs">{peers.length + 1} ONLINE</span>
+            <span className="pixel-text text-white text-xs">{allPeers.length + 1} ONLINE</span>
           </div>
           <Button 
             variant="destructive" 
@@ -280,7 +422,12 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
           </Button>
         </div>
         
-        <div className="flex-1 relative overflow-hidden" style={{ background: 'repeating-linear-gradient(0deg, #111 0px, #111 2px, #222 2px, #222 4px)' }}>
+        <div 
+          className="flex-1 relative overflow-hidden cursor-pointer touch-none" 
+          style={{ background: 'repeating-linear-gradient(0deg, #111 0px, #111 2px, #222 2px, #222 4px)' }}
+          onMouseMove={handleDragMove}
+          onTouchMove={handleDragMove}
+        >
           <div className="absolute top-4 left-4 w-12 h-6 bg-pink-600 rounded-sm shadow-[0_0_8px_rgba(236,72,153,0.6)] flex items-center justify-center">
             <span className="text-white text-[8px]">GAMES</span>
           </div>
@@ -289,6 +436,7 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
             <span className="text-white text-[8px]">SHOP</span>
           </div>
           
+          {/* Local blob */}
           <div className="absolute w-12 h-12 transition-all duration-200"
             style={{ 
               left: `${localPosition.x}%`, 
@@ -296,13 +444,22 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
               transform: 'translate(-50%, -50%)'
             }}
           >
-            <div className="w-10 h-10 bg-blob-primary rounded-full flex items-center justify-center">
+            <div className={cn(
+              "w-10 h-10 rounded-full flex items-center justify-center",
+              mood === 'happy' ? 'bg-blob-happy' :
+              mood === 'sad' ? 'bg-blob-sad' :
+              mood === 'hungry' ? 'bg-blob-hungry' :
+              'bg-blob-primary'
+            )}>
               <span className="text-[8px]">YOU</span>
             </div>
-            <div className="text-white text-[8px] text-center mt-1">You</div>
+            <div className="text-white text-[8px] text-center mt-1">
+              {settings.username || 'You'}
+            </div>
           </div>
           
-          {peers.map((peer) => (
+          {/* Remote peer blobs */}
+          {allPeers.map((peer) => (
             <div 
               key={peer.id}
               className="absolute w-12 h-12 transition-all duration-200"
@@ -324,6 +481,15 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
                 <span className="text-[8px]">{peer.username?.charAt(0) || '?'}</span>
               </div>
               <div className="text-white text-[8px] text-center mt-1">{peer.username}</div>
+              
+              {/* Action indicator */}
+              {peer.action && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-xs text-white text-center">
+                  {peer.action === 'dance' && '💃'}
+                  {peer.action === 'wave' && '👋'}
+                  {peer.action === 'feed' && '🍔'}
+                </div>
+              )}
             </div>
           ))}
           
@@ -423,6 +589,7 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
                 placeholder="Enter friend code"
                 value={friendCode}
                 onChange={(e) => setFriendCode(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && connectViaFriendCode()}
               />
               <button 
                 className="bg-purple-600 text-white px-3 rounded-r"
@@ -437,6 +604,9 @@ const BlobMeet: React.FC<BlobMeetProps> = ({ onClose, evolutionLevel, mood }) =>
         <div className="mt-8 text-gray-500 text-xs text-center">
           <p>Connect and play with other blobs online!</p>
           <p className="mt-1">Your Evolution Level: {evolutionLevel}</p>
+          {error && (
+            <p className="mt-2 text-red-500">Error: {error}</p>
+          )}
         </div>
       </div>
     </div>
