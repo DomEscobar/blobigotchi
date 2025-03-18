@@ -218,6 +218,9 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
         
         socket.on('MATCH_FOUND', (data) => {
+
+          console.log('Match found', data);
+
           setIsWaitingForOpponent(false);
           setOpponentName(data.opponentName);
           battleRoomRef.current = data.battleId;
@@ -226,6 +229,7 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           
           // Set opponent appearance and evolution level
           if (data.opponentAppearance) {
+            console.log('Opponent appearance:', data.opponentAppearance);
             setOpponentAppearance(data.opponentAppearance);
           }
           
