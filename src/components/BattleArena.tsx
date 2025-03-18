@@ -60,7 +60,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
   const selectedAttacks = getSelectedAttacks();
   const attacksToUse = selectedAttacks.length > 0 
     ? selectedAttacks
-    : ['quick_attack', 'blob_beam', 'pixel_punch', 'static_slam'] as BlobAttack[];
+    : ['quick_attack'] as BlobAttack[];
   
   // Setup keyboard shortcuts
   useEffect(() => {
@@ -175,18 +175,18 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
   
   // Main battle arena screen
   return (
-    <div className="h-full w-full flex flex-col justify-between bg-gradient-to-b from-black to-gray-900 p-6">
-      <div className="absolute top-4 right-4">
+    <div className="h-full w-full flex flex-col justify-between bg-gradient-to-b from-black to-gray-900 p-3 sm:p-6">
+      <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
         <button onClick={() => setShowOverlay(true)} className="text-gray-400 hover:text-white">
           <X size={20} />
         </button>
       </div>
       
       {/* Opponent section */}
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h3 className="text-lg text-white pixel-text">{opponentName || 'Opponent'}</h3>
-          <div className="bg-gray-800 rounded-lg w-64 h-4 mt-1">
+      <div className="flex justify-between items-center mb-2 sm:mb-4">
+        <div className="flex-1 max-w-[180px] sm:max-w-[250px]">
+          <h3 className="text-sm sm:text-lg text-white pixel-text truncate">{opponentName || 'Opponent'}</h3>
+          <div className="bg-gray-800 rounded-lg w-full h-3 sm:h-4 mt-1">
             <div 
               className="bg-gradient-to-r from-red-600 to-red-400 h-full rounded-lg transition-all duration-500 ease-out"
               style={{ width: `${(battleState?.opponentHP || 0) / 100 * 100}%` }}
@@ -197,7 +197,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
           </p>
         </div>
         
-        <div className="h-32 w-32 relative">
+        <div className="h-20 w-20 sm:h-32 sm:w-32 relative">
           {/* Opponent blob with proper appearance */}
           <div className="absolute inset-0 flex items-center justify-center">
             <Blob 
@@ -211,20 +211,20 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
       </div>
       
       {/* Battle log section */}
-      <div className="flex-1 my-4 flex flex-col items-center justify-center">
+      <div className="flex-1 my-2 sm:my-4 flex flex-col items-center justify-center">
         {battleState?.lastMove ? (
-          <div className="text-center mb-4">
-            <p className="text-white pixel-text">
+          <div className="text-center mb-2 sm:mb-4">
+            <p className="text-sm sm:text-base text-white pixel-text">
               {battleState.turn === 'player' 
                 ? `${opponentName || 'Opponent'} used ${battleState.lastMove}!` 
                 : `You used ${battleState.lastMove}!`}
             </p>
             {battleState.lastDamage && (
               <p className={battleState.lastEffectiveness === 'super' 
-                ? "text-green-400 pixel-text mt-1"
+                ? "text-green-400 pixel-text mt-1 text-xs sm:text-sm"
                 : battleState.lastEffectiveness === 'weak'
-                  ? "text-red-400 pixel-text mt-1"
-                  : "text-white pixel-text mt-1"
+                  ? "text-red-400 pixel-text mt-1 text-xs sm:text-sm"
+                  : "text-white pixel-text mt-1 text-xs sm:text-sm"
               }>
                 {battleState.lastEffectiveness === 'super' && "It's super effective! "}
                 {battleState.lastEffectiveness === 'weak' && "It's not very effective... "}
@@ -233,8 +233,8 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
             )}
           </div>
         ) : (
-          <div className="text-center mb-4">
-            <p className="text-white pixel-text">
+          <div className="text-center mb-2 sm:mb-4">
+            <p className="text-sm sm:text-base text-white pixel-text">
               {battleState?.turn === 'player'
                 ? 'Your turn! Choose a move.'
                 : `Waiting for ${opponentName || 'opponent'} to make a move...`}
@@ -244,16 +244,16 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
         
         {battleState?.turn !== 'player' && (
           <div className="animate-pulse">
-            <span className="inline-block w-4 h-4 bg-blob-primary rounded-full mx-1"></span>
-            <span className="inline-block w-4 h-4 bg-blob-primary rounded-full mx-1 animate-delay-200"></span>
-            <span className="inline-block w-4 h-4 bg-blob-primary rounded-full mx-1 animate-delay-400"></span>
+            <span className="inline-block w-3 h-3 sm:w-4 sm:h-4 bg-blob-primary rounded-full mx-1"></span>
+            <span className="inline-block w-3 h-3 sm:w-4 sm:h-4 bg-blob-primary rounded-full mx-1 animate-delay-200"></span>
+            <span className="inline-block w-3 h-3 sm:w-4 sm:h-4 bg-blob-primary rounded-full mx-1 animate-delay-400"></span>
           </div>
         )}
       </div>
       
       {/* Player section */}
       <div className="flex justify-between items-center">
-        <div className="h-32 w-32 relative">
+        <div className="h-20 w-20 sm:h-32 sm:w-32 relative">
           <div className="absolute inset-0 flex items-center justify-center">
             <Blob 
               mood={battleState?.playerHP && battleState.playerHP < 30 ? "sad" : "happy"} 
@@ -264,9 +264,9 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
           </div>
         </div>
         
-        <div className="text-right">
-          <h3 className="text-lg text-white pixel-text">Your Blob</h3>
-          <div className="bg-gray-800 rounded-lg w-64 h-4 mt-1">
+        <div className="text-right flex-1 max-w-[180px] sm:max-w-[250px]">
+          <h3 className="text-sm sm:text-lg text-white pixel-text truncate">Your Blob</h3>
+          <div className="bg-gray-800 rounded-lg w-full h-3 sm:h-4 mt-1">
             <div 
               className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-lg transition-all duration-500 ease-out"
               style={{ width: `${(battleState?.playerHP || 0) / 100 * 100}%` }}
@@ -279,7 +279,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
       </div>
       
       {/* Moves section */}
-      <div className="grid grid-cols-2 gap-4 mt-6">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-6">
         {attacksToUse.map((attackId, index) => {
           const attack = getAttackById(attackId);
           if (!attack) return null;
@@ -290,19 +290,58 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
               onClick={() => handleMoveClick(attackId)}
               disabled={battleState?.turn !== 'player'}
               className={cn(
-                "pixel-button h-16 p-4",
+                "pixel-button h-16 sm:h-24 p-0 overflow-hidden relative group",
                 selectedMove === attackId ? "animate-button-press" : "",
                 battleState?.turn !== 'player' ? "opacity-50 cursor-not-allowed" : "",
                 getAttackColor(attackId)
               )}
             >
-              <div className="w-full flex items-center justify-between">
-                <div className="flex items-center">
-                  <span className="mr-2">{attack.icon}</span>
-                  <span className="pixel-text text-white">{attack.name}</span>
-                </div>
-                <span className="text-xs text-gray-400">#{index + 1}</span>
+              {/* Attack type badge */}
+              <div className="absolute top-0 left-0 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-br-md bg-black/30">
+                <span className="text-lg sm:text-xl">{attack.icon}</span>
               </div>
+              
+              {/* Attack number badge */}
+              <div className="absolute top-0 right-0 w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[8px] sm:text-[10px] bg-black/30 rounded-bl-md text-white font-bold">
+                {index + 1}
+              </div>
+              
+              {/* Main content */}
+              <div className="w-full h-full flex flex-col pt-5 pb-1 px-2">
+                {/* Attack name */}
+                <div className="text-center mb-1">
+                  <span className="pixel-text text-white text-xs sm:text-sm font-semibold tracking-wide truncate block">
+                    {attack.name}
+                  </span>
+                </div>
+                
+                {/* Type and power bar */}
+                <div className="mt-auto flex items-center justify-between">
+                  <div className="flex items-center bg-black/40 px-1.5 py-0.5 rounded-sm">
+                    <span className="text-[8px] sm:text-[10px] capitalize text-white">
+                      {attack.type}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center bg-black/40 px-1.5 py-0.5 rounded-sm">
+                    <span className="text-[8px] sm:text-[10px] text-white">
+                      PWR: {attack.basePower}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Effect description */}
+                {attack.effectDescription && (
+                  <div className="w-full mt-0.5 bg-black/30 px-1 py-0.5 rounded-sm">
+                    <p className="text-[7px] sm:text-[9px] text-gray-200 italic truncate text-center">
+                      {attack.effectDescription}
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Hover/press effect overlay */}
+              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
             </Button>
           );
         })}
@@ -311,14 +350,71 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
         {Array.from({ length: Math.max(0, 4 - attacksToUse.length) }).map((_, index) => (
           <div 
             key={`empty-${index}`}
-            className="pixel-button h-16 p-4 bg-gray-900/20 border-gray-800/50 opacity-30"
+            className="pixel-button h-16 sm:h-24 p-0 overflow-hidden relative bg-gray-900/20 border-gray-800/50 opacity-30"
           >
-            <div className="w-full flex items-center justify-between">
-              <span className="pixel-text text-gray-500">No Attack</span>
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="pixel-text text-gray-500 text-xs">No Attack</span>
             </div>
           </div>
         ))}
       </div>
+      
+      {/* Confirmation overlay */}
+      {showOverlay && (
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10 p-4">
+          <div className="bg-gray-900 border-2 border-gray-700 rounded-lg p-4 max-w-xs w-full">
+            <h3 className="text-lg text-white pixel-text mb-4 text-center">Forfeit Battle?</h3>
+            <p className="text-gray-300 text-sm mb-6 text-center">
+              Are you sure you want to forfeit this battle? You will lose any progress.
+            </p>
+            <div className="flex justify-between gap-4">
+              <Button 
+                onClick={handleCloseBattle}
+                className="flex-1 bg-red-900/30 border-red-700 hover:bg-red-800/40 pixel-button"
+              >
+                <div className="flex items-center justify-center">
+                  <X size={16} className="mr-2" />
+                  <span>Forfeit</span>
+                </div>
+              </Button>
+              <Button 
+                onClick={() => setShowOverlay(false)}
+                className="flex-1 bg-green-900/30 border-green-700 hover:bg-green-800/40 pixel-button"
+              >
+                <div className="flex items-center justify-center">
+                  <Shield size={16} className="mr-2" />
+                  <span>Continue</span>
+                </div>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* End screen */}
+      {showEndScreen && (
+        <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-10 p-4">
+          <div className="bg-gray-900 border-2 border-gray-700 rounded-lg p-6 max-w-xs w-full text-center">
+            <h2 className="text-xl text-white pixel-text mb-2">
+              {battleState?.winner === 'player' ? 'Victory!' : 'Defeat!'}
+            </h2>
+            <p className="text-gray-300 mb-6">
+              {battleState?.winner === 'player' 
+                ? 'Your blob won the battle!'
+                : 'Your blob was defeated.'}
+            </p>
+            <Button 
+              onClick={handleCloseBattle}
+              className="w-full bg-purple-900/30 border-purple-700 hover:bg-purple-800/40 pixel-button"
+            >
+              <div className="flex items-center justify-center">
+                <Swords size={16} className="mr-2" />
+                <span>Return to Home</span>
+              </div>
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
