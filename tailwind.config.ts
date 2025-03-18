@@ -95,6 +95,11 @@ const config = {
           "50%": { transform: "scale(1.2) translateY(-15px)" },
           "100%": { transform: "scale(1) translateY(0)" },
         },
+        "blob-shake": {
+          "0%, 100%": { transform: "translateX(0)" },
+          "10%, 30%, 50%, 70%, 90%": { transform: "translateX(-5px)" },
+          "20%, 40%, 60%, 80%": { transform: "translateX(5px)" },
+        },
         "led-blink": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.5" },
@@ -117,6 +122,38 @@ const config = {
           "50%": { width: "70%" },
           "70%": { width: "40%" },
           "100%": { width: "100%" },
+        },
+        "button-press": {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(0.95)" },
+          "100%": { transform: "scale(1)" },
+        },
+        "fire-attack": {
+          "0%": { opacity: "0", transform: "scale(0)" },
+          "50%": { opacity: "1", transform: "scale(1.2)" },
+          "100%": { opacity: "0", transform: "scale(0)" },
+        },
+        "water-attack": {
+          "0%": { opacity: "0", transform: "translateY(-50px)" },
+          "50%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(50px)" },
+        },
+        "electric-attack": {
+          "0%": { opacity: "0" },
+          "10%": { opacity: "1" },
+          "20%": { opacity: "0" },
+          "30%": { opacity: "1" },
+          "100%": { opacity: "0" },
+        },
+        "grass-attack": {
+          "0%": { opacity: "0", transform: "rotate(0deg) scale(0)" },
+          "50%": { opacity: "1", transform: "rotate(180deg) scale(1.2)" },
+          "100%": { opacity: "0", transform: "rotate(360deg) scale(0)" },
+        },
+        "ice-attack": {
+          "0%": { opacity: "0", filter: "blur(8px)" },
+          "50%": { opacity: "1", filter: "blur(0)" },
+          "100%": { opacity: "0", filter: "blur(8px)" },
         }
       },
       animation: {
@@ -125,11 +162,23 @@ const config = {
         "blob-idle": "blob-idle 3s ease-in-out infinite",
         "blob-sad": "blob-sad 4s ease-in-out infinite",
         "blob-bounce": "blob-bounce 0.5s ease-in-out",
+        "blob-shake": "blob-shake 0.5s ease-in-out",
         "led-blink": "led-blink 1.5s ease-in-out infinite",
         "pulse": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "spin-slow": "spin-slow 3s linear infinite",
         "shake": "shake 0.5s ease-in-out",
-        "progress": "progress 2s ease-in-out infinite"
+        "progress": "progress 2s ease-in-out infinite",
+        "button-press": "button-press 0.3s ease-out",
+        "fire-attack": "fire-attack 1s ease-out forwards",
+        "water-attack": "water-attack 1s ease-out forwards",
+        "electric-attack": "electric-attack 0.8s ease-out forwards",
+        "grass-attack": "grass-attack 1s ease-out forwards",
+        "ice-attack": "ice-attack 1s ease-out forwards",
+        "normal-attack": "button-press 0.5s ease-out",
+        "fighting-attack": "shake 0.5s ease-out",
+        "poison-attack": "button-press 0.5s ease-out",
+        "ghost-attack": "button-press 0.5s ease-out",
+        "psychic-attack": "button-press 0.5s ease-out"
       },
     },
   },

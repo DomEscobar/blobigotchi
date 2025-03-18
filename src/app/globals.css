@@ -1,0 +1,232 @@
+/* Add battle animations at the end of the file */
+
+/* Fire attack animations */
+@keyframes fire-spread {
+  0% { transform: scale(0.1); opacity: 0.6; }
+  50% { transform: scale(2); opacity: 0.8; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes float-up {
+  0% { transform: translateY(0); opacity: 0.8; }
+  100% { transform: translateY(-100px); opacity: 0; }
+}
+
+.animate-fire-spread {
+  animation: fire-spread 1s ease-out forwards;
+}
+
+.animate-float-up {
+  animation: float-up 1.5s ease-out forwards;
+}
+
+/* Water attack animations */
+@keyframes water-spread {
+  0% { transform: scale(0.1); opacity: 0.6; }
+  50% { transform: scale(2.5, 1); opacity: 0.7; }
+  100% { transform: scale(4, 1.5); opacity: 0; }
+}
+
+@keyframes splash {
+  0% { transform: translate(0, 0); opacity: 0.8; }
+  100% { transform: translate(var(--rand-x, 50px), var(--rand-y, 50px)); opacity: 0; }
+}
+
+.animate-water-spread {
+  animation: water-spread 0.8s ease-out forwards;
+}
+
+.animate-splash {
+  --rand-x: calc((random(20) - 10) * 5px);
+  --rand-y: calc((random(20) - 5) * 5px);
+  animation: splash 1s ease-out forwards;
+}
+
+/* Electric attack animations */
+@keyframes lightning-flash {
+  0%, 5%, 10% { opacity: 0; }
+  2%, 8% { opacity: 0.3; }
+  100% { opacity: 0; }
+}
+
+@keyframes lightning {
+  0% { height: 0; opacity: 0; }
+  10% { height: 60%; opacity: 0.8; }
+  20% { height: 40%; opacity: 0.6; }
+  30% { height: 80%; opacity: 0.9; }
+  40% { height: 20%; opacity: 0.5; }
+  50% { height: 100%; opacity: 1; }
+  60% { height: 70%; opacity: 0.7; }
+  100% { height: 0; opacity: 0; }
+}
+
+.animate-lightning-flash {
+  animation: lightning-flash 1s ease-out forwards;
+}
+
+.animate-lightning {
+  animation: lightning 0.8s ease-out forwards;
+}
+
+/* Grass attack animations */
+@keyframes grass-grow {
+  0% { transform: scale(0.1); opacity: 0.6; }
+  60% { transform: scale(2.2); opacity: 0.7; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes spin-float {
+  0% { transform: rotate(0deg) translateY(0); opacity: 0.7; }
+  100% { transform: rotate(360deg) translateY(-100px); opacity: 0; }
+}
+
+.animate-grass-grow {
+  animation: grass-grow 1s ease-out forwards;
+}
+
+.animate-spin-float {
+  animation: spin-float 2s ease-out forwards;
+}
+
+/* Ice attack animations */
+@keyframes ice-grow {
+  0% { transform: scale(0.1); opacity: 0.7; }
+  50% { transform: scale(2); opacity: 0.9; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes fall-rotate {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 0.9; }
+  100% { transform: translateY(100px) rotate(360deg); opacity: 0; }
+}
+
+.animate-ice-grow {
+  animation: ice-grow 0.8s ease-out forwards;
+}
+
+.animate-fall-rotate {
+  animation: fall-rotate 1.5s ease-in forwards;
+}
+
+/* Fighting attack animations */
+@keyframes impact-shake {
+  0% { transform: translate(0, 0) scale(0.1); opacity: 0.7; }
+  10% { transform: translate(-5px, -3px) scale(0.5); }
+  20% { transform: translate(5px, 3px) scale(0.8); }
+  30% { transform: translate(-3px, 5px) scale(1); }
+  40% { transform: translate(3px, -5px) scale(1.2); }
+  50% { transform: translate(-5px, -3px) scale(1.4); }
+  60% { transform: translate(5px, 3px) scale(1.6); }
+  100% { transform: translate(0, 0) scale(2); opacity: 0; }
+}
+
+@keyframes grow {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.animate-impact-shake {
+  animation: impact-shake 0.8s ease-out forwards;
+}
+
+.animate-grow {
+  animation: grow 0.8s ease-out forwards;
+}
+
+/* Psychic attack animations */
+@keyframes psychic-pulse {
+  0% { transform: scale(0.1); opacity: 0.7; }
+  50% { transform: scale(2); opacity: 0.8; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes psychic-rings {
+  0% { transform: scale(0.1); opacity: 0.9; }
+  70% { transform: scale(2); opacity: 0.6; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+.animate-psychic-pulse {
+  animation: psychic-pulse 0.8s ease-out forwards;
+}
+
+.animate-psychic-rings {
+  animation: psychic-rings 1s ease-out forwards;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+
+/* Ghost attack animations */
+@keyframes ghost-fade {
+  0% { opacity: 0; }
+  30% { opacity: 0.3; }
+  70% { opacity: 0.3; }
+  100% { opacity: 0; }
+}
+
+@keyframes ghost-appear {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  30% { transform: scale(1.2) rotate(10deg); opacity: 0.9; }
+  70% { transform: scale(1.2) rotate(-5deg); opacity: 0.9; }
+  100% { transform: scale(0) rotate(10deg); opacity: 0; }
+}
+
+.animate-ghost-fade {
+  animation: ghost-fade 1s ease-in-out forwards;
+}
+
+.animate-ghost-appear {
+  animation: ghost-appear 1s ease-in-out forwards;
+}
+
+/* Poison attack animations */
+@keyframes poison-cloud {
+  0% { transform: scale(0.1); opacity: 0.7; }
+  60% { transform: scale(2); opacity: 0.6; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes float-random {
+  0% { transform: translate(0, 0); opacity: 0.7; }
+  100% { transform: translate(var(--rand-x, 50px), var(--rand-y, 50px)); opacity: 0; }
+}
+
+.animate-poison-cloud {
+  animation: poison-cloud 1s ease-out forwards;
+}
+
+.animate-float-random {
+  --rand-x: calc((random(20) - 10) * 5px);
+  --rand-y: calc((random(20) - 10) * 5px);
+  animation: float-random 1.5s ease-out forwards;
+}
+
+/* Normal attack animations */
+@keyframes impact {
+  0% { transform: scale(0.1); opacity: 0.7; }
+  50% { transform: scale(1.5); opacity: 0.9; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes bounce-once {
+  0% { transform: scale(0); opacity: 0; }
+  40% { transform: scale(1.4); opacity: 1; }
+  60% { transform: scale(0.8); opacity: 1; }
+  80% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+.animate-impact {
+  animation: impact 0.6s ease-out forwards;
+}
+
+.animate-bounce-once {
+  animation: bounce-once 1s ease-out forwards;
+} 
