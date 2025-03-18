@@ -9,6 +9,8 @@ import BabyRoom from './environments/BabyRoom';
 import AdultRoom from './environments/AdultRoom';
 import BattleArcade from './BattleArcade';
 import BlobBattlegroundsWithProvider from './BlobBattlegrounds';
+import AppearanceTreasure from './AppearanceTreasure';
+import { useBlobAppearance } from '@/hooks/useBlobAppearance';
 
 interface HabitatProps {
   mood: BlobMood;
@@ -25,6 +27,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
   const [isTvOn, setIsTvOn] = useState(false);
   const { playSoundEffect } = useSounds();
   const { settings } = useSettings();
+  const { appearance, unlockedOptions, setType, setEyes, setMouth, setAttack, resetAppearance } = useBlobAppearance(evolutionLevel);
 
   const handleFridgeClick = () => {
     setIsFridgeOpen(prev => !prev);
@@ -124,9 +127,23 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
           )}
 
           {/* Battle Arcade - available at all evolution levels */}
-          <div className="absolute top-4 right-4">
+          <div className="absolute bottom-4 left-4 z-50">
             <BattleArcade onClick={handleBattleArcadeClick} isMobile={isMobile} />
           </div>
+
+          {/* Appearance Treasure - available at evolution level 2+ */}
+          {evolutionLevel >= 2 && (
+            <AppearanceTreasure 
+              appearance={appearance}
+              unlockedOptions={unlockedOptions}
+              onColorChange={setType}
+              onEyesChange={setEyes}
+              onMouthChange={setMouth}
+              onAccessoryChange={setAttack}
+              onReset={resetAppearance}
+              evolutionLevel={evolutionLevel}
+            />
+          )}
 
           {evolutionLevel >= 2 && evolutionLevel <= 3 && (
             <>
@@ -202,7 +219,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
         </div>
 
         <div className="absolute left-1/2 bottom-16 transform -translate-x-1/2">
-          <Blob mood={mood} onClick={handleBlobClickWithSound} evolutionLevel={evolutionLevel} />
+          <Blob mood={mood} onClick={handleBlobClickWithSound} evolutionLevel={evolutionLevel} appearance={appearance} />
         </div>
 
         {/* Show toy box only for certain evolution levels */}

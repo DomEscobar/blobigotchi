@@ -4,23 +4,63 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useBattle } from '@/contexts/BattleContext';
+import Blob from '@/components/Blob';
+import { BlobAppearance, BlobAttack, BlobType } from '@/hooks/useBlobAppearance';
+import { getAttackById } from '@/data/attacks';
 
 interface BattleArenaProps {
   evolutionLevel: number;
   onClose: () => void;
+  appearance: BlobAppearance;
 }
 
-const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) => {
+const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appearance }) => {
   const [showEndScreen, setShowEndScreen] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [selectedMove, setSelectedMove] = useState<string | null>(null);
   
   const { 
     battleState, 
-    opponentName, 
+    opponentName,
+    opponentAppearance,
+    opponentEvolutionLevel, 
     executeMove, 
     disconnect
   } = useBattle();
+
+  // Filter out 'none' and get available attacks
+  const availableAttacks = appearance.attack !== 'none' 
+    ? [appearance.attack]
+    : [] as BlobAttack[];
+  
+  // Get any additional attacks from a multi-attack system
+  const getSelectedAttacks = (): BlobAttack[] => {
+    // First check if we have access to localStorage for stored attacks
+    if (typeof window !== 'undefined') {
+      try {
+        const savedAppearance = localStorage.getItem('blobAppearance');
+        if (savedAppearance) {
+          const parsed = JSON.parse(savedAppearance);
+          if (parsed.selectedAttacks && Array.isArray(parsed.selectedAttacks) && parsed.selectedAttacks.length > 0) {
+            return parsed.selectedAttacks
+              .filter((a: string) => a !== 'none')
+              .map((id: string) => id as BlobAttack);
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing saved appearance', e);
+      }
+    }
+    
+    // If no attacks found in localStorage, return the single attack if it exists
+    return appearance.attack !== 'none' ? [appearance.attack] : [];
+  };
+  
+  // Use the selected attacks or fallback to default attacks
+  const selectedAttacks = getSelectedAttacks();
+  const attacksToUse = selectedAttacks.length > 0 
+    ? selectedAttacks
+    : ['quick_attack', 'blob_beam', 'pixel_punch', 'static_slam'] as BlobAttack[];
   
   // Setup keyboard shortcuts
   useEffect(() => {
@@ -30,10 +70,12 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
       // Number keys 1-4 for selecting moves
       if (['1', '2', '3', '4'].includes(key) && !showEndScreen && battleState?.turn === 'player') {
         const moveIndex = parseInt(key) - 1;
-        const moves = ['Pixel Punch', 'Blob Beam', 'Digital Dash', 'Static Slam'];
         
-        if (moveIndex >= 0 && moveIndex < moves.length) {
-          executeMove(moves[moveIndex]);
+        if (moveIndex >= 0 && moveIndex < attacksToUse.length) {
+          const attack = getAttackById(attacksToUse[moveIndex]);
+          if (attack) {
+            executeMove(attack.name);
+          }
         }
       }
       
@@ -48,7 +90,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [battleState, showEndScreen, executeMove]);
+  }, [battleState, showEndScreen, executeMove, attacksToUse]);
   
   // Show end screen when battle is over
   useEffect(() => {
@@ -58,14 +100,17 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
   }, [battleState?.gameOver]);
   
   // Handle move button click
-  const handleMoveClick = (moveName: string) => {
+  const handleMoveClick = (attackId: BlobAttack) => {
     if (battleState?.turn !== 'player' || showEndScreen) return;
     
-    setSelectedMove(moveName);
+    setSelectedMove(attackId);
+    
+    const attack = getAttackById(attackId);
+    if (!attack) return;
     
     // Execute the move with a small delay for animation
     setTimeout(() => {
-      executeMove(moveName);
+      executeMove(attack.name);
       setSelectedMove(null);
     }, 300);
   };
@@ -76,95 +121,57 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
     onClose();
   };
   
-  // Render battle end screen if the battle is over
-  if (showEndScreen && battleState?.gameOver) {
-    const isVictory = battleState.winner === 'player';
-    
-    return (
-      <div className="relative h-full w-full flex flex-col items-center justify-center bg-gradient-to-b from-black to-gray-900 p-6">
-        <div className="absolute top-4 right-4">
-          <button onClick={handleCloseBattle} className="text-gray-400 hover:text-white">
-            <X size={20} />
-          </button>
-        </div>
-        
-        <div className="text-center max-w-md mx-auto">
-          <h1 className={`text-4xl font-bold pixel-text mb-6 ${isVictory ? 'text-green-400' : 'text-red-400'}`}>
-            {isVictory ? 'VICTORY!' : 'DEFEATED!'}
-          </h1>
-          
-          <div className="bg-black/50 rounded-lg border border-blob-tertiary/50 p-6 mb-6">
-            <p className="text-white pixel-text mb-4">
-              {isVictory 
-                ? 'Your blob has triumphed in battle!' 
-                : 'Your blob fought bravely, but was defeated.'}
-            </p>
-            
-            <div className="grid grid-cols-2 gap-4 text-sm text-center">
-              <div>
-                <p className="text-gray-400 pixel-text">Your HP</p>
-                <p className={`text-xl font-bold pixel-text ${battleState.playerHP > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {battleState.playerHP}/100
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400 pixel-text">Opponent HP</p>
-                <p className={`text-xl font-bold pixel-text ${battleState.opponentHP > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {battleState.opponentHP}/100
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <button 
-            onClick={handleCloseBattle}
-            className="px-6 py-3 bg-blob-tertiary hover:bg-blob-secondary text-white rounded pixel-text"
-          >
-            Return to Menu
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Log appearance and evolution data for debugging
+  useEffect(() => {
+    console.log('BattleArena using appearance:', appearance);
+    console.log('BattleArena using evolution level:', evolutionLevel);
+  }, [appearance, evolutionLevel]);
   
-  // Render confirmation overlay when trying to leave battle
-  if (showOverlay) {
-    return (
-      <div className="relative h-full w-full">
-        {/* Render the battle arena in the background */}
-        <div className="absolute inset-0 filter blur-sm">
-          <div className="h-full w-full flex flex-col justify-between bg-gradient-to-b from-black to-gray-900 p-6">
-            {/* Battle arena content (blurred) */}
-          </div>
-        </div>
-        
-        {/* Confirmation overlay */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-          <div className="bg-black rounded-lg border border-blob-tertiary p-6 max-w-sm">
-            <h3 className="text-xl font-bold text-white pixel-text mb-4">Leave Battle?</h3>
-            <p className="text-gray-300 pixel-text mb-6">
-              Are you sure you want to leave the battle? This will count as a forfeit.
-            </p>
-            
-            <div className="flex space-x-4">
-              <button 
-                onClick={handleCloseBattle}
-                className="flex-1 px-4 py-2 bg-red-800 hover:bg-red-700 text-white rounded pixel-text"
-              >
-                Leave Battle
-              </button>
-              <button 
-                onClick={() => setShowOverlay(false)}
-                className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded pixel-text"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Create default opponent appearance if none received
+  const getOpponentAppearance = (): BlobAppearance => {
+    if (opponentAppearance) {
+      console.log('Using received opponent appearance:', opponentAppearance);
+      return {
+        type: opponentAppearance.type || 'normal',
+        eyes: opponentAppearance.eyes || 'default',
+        mouth: opponentAppearance.mouth || 'default',
+        attack: opponentAppearance.attack as BlobAttack || 'none'
+      };
+    }
+    
+    console.log('No opponent appearance data, using fallback');
+    // Fallback to a random type if no appearance data
+    const types: BlobType[] = ['normal', 'fire', 'water', 'electric', 'grass', 'ice'];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    
+    return {
+      type: (battleState?.opponentType as BlobType) || randomType,
+      eyes: 'default',
+      mouth: 'default',
+      attack: 'none'
+    };
+  };
+  
+  // Get attack color based on type
+  const getAttackColor = (attackId: BlobAttack): string => {
+    const attack = getAttackById(attackId);
+    if (!attack) return "bg-gray-900/30 border-gray-700";
+    
+    switch (attack.type) {
+      case 'fire': return "bg-red-900/30 border-red-700 hover:border-red-600";
+      case 'water': return "bg-blue-900/30 border-blue-700 hover:border-blue-600";
+      case 'electric': return "bg-yellow-900/30 border-yellow-700 hover:border-yellow-600";
+      case 'grass': return "bg-green-900/30 border-green-700 hover:border-green-600";
+      case 'ice': return "bg-cyan-900/30 border-cyan-700 hover:border-cyan-600";
+      case 'fighting': return "bg-orange-900/30 border-orange-700 hover:border-orange-600";
+      case 'poison': return "bg-purple-900/30 border-purple-700 hover:border-purple-600";
+      case 'ground': 
+      case 'rock': return "bg-amber-900/30 border-amber-700 hover:border-amber-600";
+      case 'psychic': return "bg-pink-900/30 border-pink-700 hover:border-pink-600";
+      case 'ghost': return "bg-indigo-900/30 border-indigo-700 hover:border-indigo-600";
+      default: return "bg-gray-900/30 border-gray-700 hover:border-gray-600";
+    }
+  };
   
   // Main battle arena screen
   return (
@@ -191,12 +198,14 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
         </div>
         
         <div className="h-32 w-32 relative">
+          {/* Opponent blob with proper appearance */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-20 h-20 bg-blob-secondary rounded-full animate-pulse opacity-50"></div>
-          </div>
-          {/* Placeholder for opponent's blob image */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Shield size={40} className="text-blob-tertiary" />
+            <Blob 
+              mood="normal" 
+              onClick={() => {}} 
+              evolutionLevel={opponentEvolutionLevel || 1} 
+              appearance={getOpponentAppearance()}
+            />
           </div>
         </div>
       </div>
@@ -211,7 +220,14 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
                 : `You used ${battleState.lastMove}!`}
             </p>
             {battleState.lastDamage && (
-              <p className="text-red-400 pixel-text mt-1">
+              <p className={battleState.lastEffectiveness === 'super' 
+                ? "text-green-400 pixel-text mt-1"
+                : battleState.lastEffectiveness === 'weak'
+                  ? "text-red-400 pixel-text mt-1"
+                  : "text-white pixel-text mt-1"
+              }>
+                {battleState.lastEffectiveness === 'super' && "It's super effective! "}
+                {battleState.lastEffectiveness === 'weak' && "It's not very effective... "}
                 Dealt {battleState.lastDamage} damage!
               </p>
             )}
@@ -239,11 +255,12 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
       <div className="flex justify-between items-center">
         <div className="h-32 w-32 relative">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-20 h-20 bg-blob-primary rounded-full animate-pulse opacity-50"></div>
-          </div>
-          {/* Placeholder for player's blob image */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Swords size={40} className="text-blob-primary" />
+            <Blob 
+              mood={battleState?.playerHP && battleState.playerHP < 30 ? "sad" : "happy"} 
+              onClick={() => {}} 
+              evolutionLevel={evolutionLevel} 
+              appearance={appearance} 
+            />
           </div>
         </div>
         
@@ -263,26 +280,43 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) =>
       
       {/* Moves section */}
       <div className="grid grid-cols-2 gap-4 mt-6">
-        {['Pixel Punch', 'Blob Beam', 'Digital Dash', 'Static Slam'].map((move, index) => (
-          <Button
-            key={move}
-            onClick={() => handleMoveClick(move)}
-            disabled={battleState?.turn !== 'player'}
-            className={cn(
-              "pixel-button h-16 p-4",
-              selectedMove === move ? "animate-button-press" : "",
-              battleState?.turn !== 'player' ? "opacity-50 cursor-not-allowed" : "",
-              index === 0 ? "bg-red-900/30 border-red-700 hover:border-red-600" : "",
-              index === 1 ? "bg-blue-900/30 border-blue-700 hover:border-blue-600" : "",
-              index === 2 ? "bg-green-900/30 border-green-700 hover:border-green-600" : "",
-              index === 3 ? "bg-purple-900/30 border-purple-700 hover:border-purple-600" : ""
-            )}
+        {attacksToUse.map((attackId, index) => {
+          const attack = getAttackById(attackId);
+          if (!attack) return null;
+          
+          return (
+            <Button
+              key={attackId}
+              onClick={() => handleMoveClick(attackId)}
+              disabled={battleState?.turn !== 'player'}
+              className={cn(
+                "pixel-button h-16 p-4",
+                selectedMove === attackId ? "animate-button-press" : "",
+                battleState?.turn !== 'player' ? "opacity-50 cursor-not-allowed" : "",
+                getAttackColor(attackId)
+              )}
+            >
+              <div className="w-full flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="mr-2">{attack.icon}</span>
+                  <span className="pixel-text text-white">{attack.name}</span>
+                </div>
+                <span className="text-xs text-gray-400">#{index + 1}</span>
+              </div>
+            </Button>
+          );
+        })}
+        
+        {/* Fill empty slots if we have fewer than 4 attacks */}
+        {Array.from({ length: Math.max(0, 4 - attacksToUse.length) }).map((_, index) => (
+          <div 
+            key={`empty-${index}`}
+            className="pixel-button h-16 p-4 bg-gray-900/20 border-gray-800/50 opacity-30"
           >
             <div className="w-full flex items-center justify-between">
-              <span className="pixel-text text-white">{move}</span>
-              <span className="text-xs text-gray-400">#{index + 1}</span>
+              <span className="pixel-text text-gray-500">No Attack</span>
             </div>
-          </Button>
+          </div>
         ))}
       </div>
     </div>

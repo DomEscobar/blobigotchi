@@ -8,6 +8,7 @@ import BattleArena from './BattleArena';
 import { useBattle, BattleProvider } from '@/contexts/BattleContext';
 import { useSettings } from '@/hooks/useSettings';
 import { MessageType } from '@/contexts/BattleContext';
+import { useBlobAppearance } from '@/hooks/useBlobAppearance';
 
 interface BlobBattlegroundsProps {
   evolutionLevel: number;
@@ -27,7 +28,7 @@ const BlobBattlegroundsWithProvider: React.FC<BlobBattlegroundsProps> = (props) 
 };
 
 // Inner component that uses the context
-const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({ 
+const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
   evolutionLevel,
   onClose
 }) => {
@@ -38,27 +39,28 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
   const [battleCode, setBattleCode] = useState('');
   const [battleView, setBattleView] = useState<BattleView>('menu');
   const [isDebugPanelOpen, setIsDebugPanelOpen] = useState(false);
-  
+
   // Use refs to track the previous state for debugging
   const prevConnectionStatusRef = useRef<string | null>(null);
-  
+
   // Get context data
-  const { 
-    connectionStatus, 
-    isWaitingForOpponent, 
-    connectionCode, 
+  const {
+    connectionStatus,
+    isWaitingForOpponent,
+    connectionCode,
     opponentName,
     matchmakingQueue,
-    createBattleInvite, 
+    createBattleInvite,
     joinBattleWithCode,
     startMatchmaking,
     disconnect,
     battleState,
     serverMessages
   } = useBattle();
-  
+
   const { settings } = useSettings();
-  
+  const { appearance } = useBlobAppearance(evolutionLevel);
+
   // Log connection status changes for debugging
   useEffect(() => {
     if (prevConnectionStatusRef.current !== connectionStatus) {
@@ -66,14 +68,14 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
       prevConnectionStatusRef.current = connectionStatus;
     }
   }, [connectionStatus]);
-  
+
   // Track matchmaking duration for timeout handling
   useEffect(() => {
     if (battleView === 'matchmaking' && matchmakingStartTime) {
       const checkTimeout = setInterval(() => {
         const currentTime = Date.now();
         const elapsedTime = currentTime - matchmakingStartTime;
-        
+
         // If matchmaking has been going on for more than 30 seconds, show a notification
         if (elapsedTime > 30000 && connectionStatus !== 'connected') {
           clearInterval(checkTimeout);
@@ -84,72 +86,80 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
           });
         }
       }, 5000);
-      
+
       return () => clearInterval(checkTimeout);
     }
   }, [battleView, matchmakingStartTime, connectionStatus]);
-  
+
   // Reset to menu when disconnected
   useEffect(() => {
     if (connectionStatus === 'disconnected' && battleView !== 'menu') {
       setBattleView('menu');
     }
   }, [connectionStatus, battleView]);
-  
+
   // Switch to battle view when battle state is received
   useEffect(() => {
     if (battleState && battleView !== 'battle') {
       setBattleView('battle');
     }
   }, [battleState, battleView]);
-  
+
   // Handle copying battle code to clipboard
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success('Battle code copied to clipboard');
   };
-  
+
   // Handle creating a new battle invite
   const handleCreateBattle = async () => {
     setBattleView('lobby');
     await createBattleInvite();
     toast.success(`Battle invite created`);
   };
-  
+
   // Handle joining a battle with a code
   const handleJoinBattle = () => {
     if (!battleCode.trim()) {
       toast.error('Please enter a battle code');
       return;
     }
-    
+
     setBattleView('lobby');
     joinBattleWithCode(battleCode.trim());
   };
-  
+
   // Handle starting matchmaking for a quick match
   const handleQuickMatch = () => {
     setMatchmakingStartTime(Date.now());
     setBattleView('matchmaking');
     startMatchmaking();
   };
-  
+
   // Handle closing the battle and returning to the menu
   const handleCloseBattle = () => {
     disconnect();
     setBattleView('menu');
     onClose();
   };
-  
+
+  const handleBattleWin = () => {
+    console.log('Battle won');
+  };
+
+  const handleBattleLoss = () => {
+    console.log('Battle lost');
+  };
+
   // Render battle view if in battle
   if (battleView === 'battle' && battleState) {
     return (
       <div className="absolute inset-0 z-50 bg-black">
-        <BattleArena evolutionLevel={evolutionLevel} onClose={handleCloseBattle} />
+        <BattleArena evolutionLevel={evolutionLevel} onClose={handleCloseBattle} appearance={appearance}/>
       </div>
     );
   }
-  
+
   // Render matchmaking view if searching for a match
   if (battleView === 'matchmaking') {
     return (
@@ -157,23 +167,23 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
         <button onClick={() => { disconnect(); setBattleView('menu'); }} className="absolute top-4 right-4 text-gray-400 hover:text-white">
           <X size={20} />
         </button>
-        
+
         <div className="text-center max-w-md mx-auto">
           <h2 className="text-2xl font-bold text-white pixel-text mb-4">Finding a Match</h2>
-          
+
           <div className="bg-black/50 rounded-lg border border-blob-tertiary/50 p-6 mb-6">
             <div className="flex justify-center mb-4">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blob-primary"></div>
             </div>
-            
+
             <p className="text-white pixel-text mb-2">Searching for opponents...</p>
-            
+
             {matchmakingQueue && matchmakingQueue.length > 0 && (
               <p className="text-gray-400 pixel-text text-sm">
                 {matchmakingQueue.length} other player{matchmakingQueue.length !== 1 ? 's' : ''} waiting
               </p>
             )}
-            
+
             <div className="mt-4 flex items-center justify-center text-sm">
               <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'} mr-2`}></div>
               <span className="text-gray-400 pixel-text">
@@ -181,8 +191,8 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
               </span>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={() => { disconnect(); setBattleView('menu'); }}
             className="px-6 py-3 bg-red-800 hover:bg-red-700 text-white rounded pixel-text"
           >
@@ -192,7 +202,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
       </div>
     );
   }
-  
+
   // Render lobby view if waiting in a created battle
   if (battleView === 'lobby') {
     return (
@@ -200,10 +210,10 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
         <button onClick={() => { disconnect(); setBattleView('menu'); }} className="absolute top-4 right-4 text-gray-400 hover:text-white">
           <X size={20} />
         </button>
-        
+
         <div className="text-center max-w-md mx-auto">
           <h2 className="text-2xl font-bold text-white pixel-text mb-4">Battle Lobby</h2>
-          
+
           <div className="bg-black/50 rounded-lg border border-blob-tertiary/50 p-6 mb-6">
             {connectionStatus !== 'connected' ? (
               <div className="flex items-center justify-center space-x-2 mb-4 text-red-400">
@@ -213,16 +223,16 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
             ) : (
               <>
                 <p className="text-white pixel-text mb-4">Waiting for opponent to join...</p>
-                
+
                 {/* Battle code display */}
                 <div className="bg-gray-900 rounded border border-gray-800 p-3 flex items-center justify-between mb-4">
                   <span className="text-blob-primary pixel-text overflow-hidden text-ellipsis">
                     {(() => {
                       // Find the battle code message in server messages
-                      const codeMsg = serverMessages?.find(msg => 
+                      const codeMsg = serverMessages?.find(msg =>
                         msg.type === 'battleCode' || (msg.type === 'system' && msg.data?.includes('code'))
                       );
-                      
+
                       if (codeMsg) {
                         if (codeMsg.type === 'battleCode') {
                           return codeMsg.data;
@@ -232,16 +242,16 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
                           return match ? match[1] : 'Generating code...';
                         }
                       }
-                      
+
                       return 'Generating code...';
                     })()}
                   </span>
-                  <button 
+                  <button
                     onClick={() => {
-                      const codeMsg = serverMessages?.find(msg => 
+                      const codeMsg = serverMessages?.find(msg =>
                         msg.type === 'battleCode' || (msg.type === 'system' && msg.data?.includes('code'))
                       );
-                      
+
                       if (codeMsg) {
                         if (codeMsg.type === 'battleCode') {
                           handleCopyCode(codeMsg.data);
@@ -256,7 +266,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
                     <Copy size={16} className="text-gray-400" />
                   </button>
                 </div>
-                
+
                 <div className="flex items-center justify-center text-sm mb-4">
                   <Info size={14} className="text-blob-tertiary mr-2" />
                   <p className="text-gray-400 pixel-text">
@@ -265,15 +275,15 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
                 </div>
               </>
             )}
-            
+
             <div className="animate-pulse flex justify-center">
               <span className="inline-block w-3 h-3 bg-blob-primary rounded-full mx-1"></span>
               <span className="inline-block w-3 h-3 bg-blob-primary rounded-full mx-1 animate-delay-200"></span>
               <span className="inline-block w-3 h-3 bg-blob-primary rounded-full mx-1 animate-delay-400"></span>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={() => { disconnect(); setBattleView('menu'); }}
             className="px-6 py-3 bg-red-800 hover:bg-red-700 text-white rounded pixel-text"
           >
@@ -283,7 +293,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
       </div>
     );
   }
-  
+
   // Debug view for development
   if (battleView === 'debug') {
     return (
@@ -294,7 +304,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
             <X size={20} />
           </button>
         </div>
-        
+
         <div className="p-4 space-y-4">
           <div className="bg-black/50 rounded-lg border border-blob-tertiary/50 p-4">
             <h3 className="text-blob-secondary pixel-text mb-3">Connection Status</h3>
@@ -303,7 +313,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
             <p className="text-sm text-white">Waiting for Opponent: <span className={isWaitingForOpponent ? "text-yellow-400" : "text-gray-400"}>{isWaitingForOpponent ? "Yes" : "No"}</span></p>
             <p className="text-sm text-white">Opponent Name: <span className="text-blue-400">{opponentName || 'None'}</span></p>
           </div>
-          
+
           <div className="bg-black/50 rounded-lg border border-blob-tertiary/50 p-4">
             <h3 className="text-blob-secondary pixel-text mb-3">Server Messages</h3>
             <div className="max-h-60 overflow-y-auto bg-black p-2 rounded text-xs">
@@ -325,7 +335,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
               )}
             </div>
           </div>
-          
+
           <div className="bg-black/50 rounded-lg border border-blob-tertiary/50 p-4">
             <h3 className="text-blob-secondary pixel-text mb-3">Test Actions</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -363,7 +373,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
               </Button>
             </div>
           </div>
-          
+
           <Button
             onClick={() => setBattleView('menu')}
             className="w-full bg-gray-800 hover:bg-gray-700 text-white text-sm mt-4"
@@ -374,7 +384,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
       </div>
     );
   }
-  
+
   // Main menu view
   return (
     <div className="absolute inset-0 z-50 bg-gradient-to-b from-gray-900 to-black">
@@ -394,7 +404,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
               <p className="text-white pixel-text">{matchmakingQueue?.length || 0}</p>
             </div>
           </div>
-          
+
           <h4 className="text-white pixel-text mb-1">Server Messages</h4>
           <div className="bg-gray-900 p-2 rounded mb-4 max-h-80 overflow-y-auto">
             {(!serverMessages || serverMessages.length === 0) ? (
@@ -414,12 +424,12 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
           </div>
         </div>
       )}
-      
+
       <div className="flex items-center justify-between p-4 border-b border-gray-800">
         <div className="flex items-center">
           <h1 className="text-xl font-bold text-white pixel-text">Battle Arena</h1>
           {process.env.NODE_ENV === 'development' && (
-            <button 
+            <button
               onClick={() => setIsDebugPanelOpen(!isDebugPanelOpen)}
               className={cn(
                 "ml-2 p-1 rounded",
@@ -434,27 +444,27 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
           <X size={20} />
         </button>
       </div>
-      
+
       <div className="flex flex-col items-center justify-center p-6 max-w-md mx-auto h-[calc(100%-4rem)]">
         <div className="w-full space-y-4">
-          <Button 
+          <Button
             onClick={handleQuickMatch}
             className="w-full h-16 bg-blob-primary hover:bg-blob-primary/90 text-black font-bold"
           >
             <Globe className="mr-2" size={18} />
             <span className="pixel-text">Quick Match</span>
           </Button>
-          
+
           <div className="bg-black/50 p-4 rounded-lg border border-gray-800">
             <h3 className="text-white pixel-text mb-2">Create Private Battle</h3>
-            <Button 
+            <Button
               onClick={handleCreateBattle}
               className="w-full bg-blob-secondary hover:bg-blob-secondary/90 text-white"
             >
               <span className="pixel-text">Create Battle Invite</span>
             </Button>
           </div>
-          
+
           <div className="bg-black/50 p-4 rounded-lg border border-gray-800">
             <h3 className="text-white pixel-text mb-2">Join Private Battle</h3>
             <div className="flex space-x-2">
@@ -465,7 +475,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
                 onChange={(e) => setBattleCode(e.target.value.toUpperCase())}
                 className="flex-1 bg-gray-900 border-gray-800 text-white pixel-text"
               />
-              <Button 
+              <Button
                 onClick={handleJoinBattle}
                 disabled={!battleCode.trim()}
                 className="bg-blob-tertiary hover:bg-blob-tertiary/90 text-white disabled:opacity-50"
@@ -474,7 +484,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
               </Button>
             </div>
           </div>
-          
+
           <div className="flex justify-center">
             <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-green-500' : 'bg-gray-500'} mr-2`}></div>
             <span className="text-gray-400 text-sm pixel-text">

@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { useSettings } from '@/hooks/useSettings';
+import { getAttackById } from '@/data/attacks';
+import attacks from '@/data/attacks';
+import { BlobType } from '@/hooks/useBlobAppearance';
 
 // Types for our WebSocket battle implementation
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
@@ -29,8 +32,17 @@ interface BattleState {
   round: number;
   lastMove?: string;
   lastDamage?: number;
+  lastEffectiveness?: 'super' | 'normal' | 'weak' | 'immune';
   gameOver?: boolean;
   winner?: 'player' | 'opponent';
+  opponentType?: string; // The blob type of the opponent
+  opponentAppearance?: {
+    type: BlobType;
+    eyes: any;
+    mouth: any;
+    attack: string;
+    selectedAttacks: string[];
+  };
 }
 
 // Server URL - should be configured based on environment
@@ -40,12 +52,23 @@ const SERVER_URL = process.env.NODE_ENV === 'production'
 
 // Generate stable user ID
 function generateUserId() {
-  const storedId = localStorage.getItem('blobBattleUserId');
-  if (storedId) return storedId;
+  if (typeof window === 'undefined') return `user_${Date.now()}`;
   
-  const newId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-  localStorage.setItem('blobBattleUserId', newId);
-  return newId;
+  try {
+    const storedId = localStorage.getItem('blobBattleUserId');
+    if (storedId) {
+      console.log('Using existing user ID:', storedId);
+      return storedId;
+    }
+    
+    const newId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    console.log('Created new user ID:', newId);
+    localStorage.setItem('blobBattleUserId', newId);
+    return newId;
+  } catch (e) {
+    console.error('Error accessing localStorage for user ID:', e);
+    return `user_${Date.now()}`;
+  }
 }
 
 // Context type definition
@@ -60,6 +83,8 @@ interface BattleContextType {
   messages: BattleMessage[];
   matchmakingQueue: any[];
   serverMessages: BattleMessage[];
+  opponentAppearance: any | null;
+  opponentEvolutionLevel: number;
   
   // Actions
   startMatchmaking: () => void;
@@ -88,6 +113,8 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [connectionCode, setConnectionCode] = useState<string | null>(null);
   const [isSimulationMode, setIsSimulationMode] = useState(false);
   const [matchmakingQueue, setMatchmakingQueue] = useState<any[]>([]);
+  const [opponentAppearance, setOpponentAppearance] = useState<any | null>(null);
+  const [opponentEvolutionLevel, setOpponentEvolutionLevel] = useState<number>(1);
   
   // Refs for values that shouldn't trigger re-renders
   const socketRef = useRef<Socket | null>(null);
@@ -135,6 +162,7 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       
       try {
         console.log('Connecting to game server:', SERVER_URL);
+        console.log('Using user ID:', userIdRef.current);
         
         // Initialize Socket.IO with auto-reconnect enabled
         const socket = io(SERVER_URL, {
@@ -195,6 +223,15 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           battleRoomRef.current = data.battleId;
           setConnectionStatus('connected');
           setBattleView('battle');
+          
+          // Set opponent appearance and evolution level
+          if (data.opponentAppearance) {
+            setOpponentAppearance(data.opponentAppearance);
+          }
+          
+          if (data.opponentEvolutionLevel) {
+            setOpponentEvolutionLevel(data.opponentEvolutionLevel);
+          }
           
           toast.success("Opponent found!", {
             description: `Connected to ${data.opponentName}`,
@@ -277,16 +314,137 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   }, [connectionStatus, isWaitingForOpponent]);
   
-  // Calculate damage based on move and seed
-  const calculateDamage = useCallback((move: string, seed: number): number => {
-    // Simple deterministic formula based on move and seed
+  // Calculate damage based on move, seed, and type effectiveness
+  const calculateDamage = useCallback((move: string, seed: number, attackType?: string, defenderType?: string): { damage: number; effectiveness?: 'super' | 'normal' | 'weak' | 'immune' } => {
+    // Default damage calculation (simple deterministic formula based on move and seed)
     const moveHash = move.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return 5 + ((moveHash * seed) % 20);
+    let baseDamage = 5 + ((moveHash * seed) % 20);
+    let effectiveness: 'super' | 'normal' | 'weak' | 'immune' = 'normal';
+    
+    // Apply type effectiveness if we have type information
+    if (attackType && defenderType) {
+      // Type effectiveness matrix
+      const typeEffectiveness: Record<string, { strong: string[], weak: string[], immune: string[] }> = {
+        'fire': { 
+          strong: ['grass', 'ice'], 
+          weak: ['water', 'rock'], 
+          immune: [] 
+        },
+        'water': { 
+          strong: ['fire', 'ground', 'rock'], 
+          weak: ['grass', 'electric'], 
+          immune: [] 
+        },
+        'electric': { 
+          strong: ['water'], 
+          weak: ['ground', 'grass'], 
+          immune: [] 
+        },
+        'grass': { 
+          strong: ['water', 'ground', 'rock'], 
+          weak: ['fire', 'ice', 'poison', 'flying'], 
+          immune: [] 
+        },
+        'ice': { 
+          strong: ['grass', 'ground'], 
+          weak: ['fire', 'fighting'], 
+          immune: [] 
+        },
+        'fighting': { 
+          strong: ['normal', 'ice', 'rock'], 
+          weak: ['psychic', 'flying'], 
+          immune: ['ghost'] 
+        },
+        'poison': { 
+          strong: ['grass'], 
+          weak: ['ground', 'psychic'], 
+          immune: [] 
+        },
+        'ground': { 
+          strong: ['fire', 'electric', 'poison', 'rock'], 
+          weak: ['water', 'grass', 'ice'], 
+          immune: ['electric'] 
+        },
+        'rock': { 
+          strong: ['fire', 'ice', 'flying'], 
+          weak: ['water', 'grass', 'fighting', 'ground'], 
+          immune: [] 
+        },
+        'psychic': { 
+          strong: ['fighting', 'poison'], 
+          weak: ['bug', 'ghost'], 
+          immune: [] 
+        },
+        'ghost': { 
+          strong: ['psychic', 'ghost'], 
+          weak: ['ghost'], 
+          immune: ['normal', 'fighting'] 
+        },
+        'normal': { 
+          strong: [], 
+          weak: ['fighting'], 
+          immune: ['ghost'] 
+        }
+      };
+      
+      // Get the effectiveness data for this attack type
+      const attackEffectiveness = typeEffectiveness[attackType];
+      if (attackEffectiveness) {
+        if (attackEffectiveness.strong.includes(defenderType)) {
+          // Super effective: 1.5x damage
+          baseDamage = Math.floor(baseDamage * 1.5);
+          effectiveness = 'super';
+        } else if (attackEffectiveness.weak.includes(defenderType)) {
+          // Not very effective: 0.5x damage
+          baseDamage = Math.floor(baseDamage * 0.5);
+          effectiveness = 'weak';
+        } else if (attackEffectiveness.immune.includes(defenderType)) {
+          // Immune: no damage
+          baseDamage = 0;
+          effectiveness = 'immune';
+        }
+      }
+    }
+    
+    return { damage: baseDamage, effectiveness };
   }, []);
   
   // Initialize the battle state
   const initBattleState = useCallback(() => {
     const initialHP = 100;
+    
+    // Generate a complete random opponent appearance
+    const blobTypes = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'rock', 'psychic', 'ghost'];
+    const eyeTypes = ['default', 'round', 'oval', 'star', 'heart', 'square'];
+    const mouthTypes = ['default', 'wide', 'small', 'kawaii', 'surprised', 'cool'];
+    
+    const randomOpponentType = blobTypes[Math.floor(Math.random() * blobTypes.length)];
+    const randomOpponentEyes = eyeTypes[Math.floor(Math.random() * eyeTypes.length)];
+    const randomOpponentMouth = mouthTypes[Math.floor(Math.random() * mouthTypes.length)];
+    
+    // Get type-appropriate attacks for the opponent
+    let opponentAttacks: string[] = [];
+    if (randomOpponentType) {
+      const typeAttacks = attacks.filter(attack => attack.type === randomOpponentType);
+      if (typeAttacks.length > 0) {
+        // Get 1-2 type-specific attacks
+        const numTypeAttacks = Math.min(2, typeAttacks.length);
+        for (let i = 0; i < numTypeAttacks; i++) {
+          const randomIndex = Math.floor(Math.random() * typeAttacks.length);
+          opponentAttacks.push(typeAttacks[randomIndex].id);
+          typeAttacks.splice(randomIndex, 1); // Remove chosen attack
+        }
+      }
+      
+      // Add 1-2 random attacks from other types
+      const otherAttacks = attacks.filter(attack => attack.type !== randomOpponentType);
+      const numOtherAttacks = Math.min(4 - opponentAttacks.length, 2, otherAttacks.length);
+      for (let i = 0; i < numOtherAttacks; i++) {
+        const randomIndex = Math.floor(Math.random() * otherAttacks.length);
+        opponentAttacks.push(otherAttacks[randomIndex].id);
+        otherAttacks.splice(randomIndex, 1); // Remove chosen attack
+      }
+    }
     
     setBattleState({
       playerHP: initialHP,
@@ -294,7 +452,15 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       playerStatus: [],
       opponentStatus: [],
       turn: Math.random() < 0.5 ? 'player' : 'opponent',
-      round: 1
+      round: 1,
+      opponentType: randomOpponentType,
+      opponentAppearance: {
+        type: randomOpponentType as BlobType,
+        eyes: randomOpponentEyes as any, // Cast to match expected type
+        mouth: randomOpponentMouth as any, // Cast to match expected type
+        attack: opponentAttacks[0] as any, // Primary attack
+        selectedAttacks: opponentAttacks
+      }
     });
     
     toast.success("Battle started!", {
@@ -376,8 +542,17 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (!isSimulationMode) return;
     
     setTimeout(() => {
-      const moves = ['Pixel Punch', 'Blob Beam', 'Digital Dash', 'Static Slam'];
-      const randomMove = moves[Math.floor(Math.random() * moves.length)];
+      // Use opponent's available attacks if they exist
+      let availableAttacks: string[] = [];
+      
+      if (battleState?.opponentAppearance?.selectedAttacks?.length) {
+        availableAttacks = battleState.opponentAppearance.selectedAttacks;
+      } else {
+        // Fallback to default attacks
+        availableAttacks = ['Pixel Punch', 'Blob Beam', 'Digital Dash', 'Static Slam'];
+      }
+      
+      const randomMove = availableAttacks[Math.floor(Math.random() * availableAttacks.length)];
       const randomSeed = Math.floor(Math.random() * 1000);
       
       const opponentAction: BattleMoveAction = {
@@ -398,14 +573,39 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         handleBattleActionRef.current(opponentAction, false);
       }
     }, 1500);
-  }, [isSimulationMode]);
+  }, [isSimulationMode, battleState]);
   
   // Handle a battle action from either player or opponent
   const handleBattleAction = useCallback((action: BattleMoveAction, isPlayer: boolean) => {
     setBattleState(prev => {
       if (!prev) return null;
       
-      const damage = calculateDamage(action.move, action.seed);
+      // Get attack type if available
+      const attack = getAttackById(action.move);
+      const attackType = attack?.type || 'normal';
+      
+      // Get defender type based on who is attacking
+      const defenderType = isPlayer 
+        ? (prev.opponentType || 'normal') // Player attacking opponent
+        : (window && localStorage.getItem('blobAppearance')) 
+          ? (() => { 
+              try {
+                const stored = JSON.parse(localStorage.getItem('blobAppearance') || '{}');
+                return stored.type || 'normal';
+              } catch (e) {
+                return 'normal';
+              }
+            })()
+          : 'normal'; // Default to normal if no storage
+      
+      // Calculate damage with type effectiveness
+      const { damage, effectiveness } = calculateDamage(
+        action.move, 
+        action.seed,
+        attackType,
+        defenderType
+      );
+      
       const newState = { ...prev };
       
       if (isPlayer) {
@@ -413,12 +613,14 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         newState.opponentHP = Math.max(0, prev.opponentHP - damage);
         newState.lastMove = action.move;
         newState.lastDamage = damage;
+        newState.lastEffectiveness = effectiveness;
         newState.turn = 'opponent';
       } else {
         // Opponent attacking player
         newState.playerHP = Math.max(0, prev.playerHP - damage);
         newState.lastMove = action.move;
         newState.lastDamage = damage;
+        newState.lastEffectiveness = effectiveness;
         newState.turn = 'player';
       }
       
@@ -543,6 +745,36 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     initBattleStateRef.current = initBattleState;
   }, [simulateOpponentMove, initBattleState]);
   
+  // Get appearance data from localStorage with proper error handling
+  const getAppearanceData = () => {
+    let appearance = null;
+    let evolutionLevel = 1;
+    
+    try {
+      if (typeof window !== 'undefined') {
+        const appearanceData = localStorage.getItem('blobAppearance');
+        if (appearanceData) {
+          appearance = JSON.parse(appearanceData);
+          console.log('Found stored appearance:', appearance);
+        } else {
+          console.log('No appearance data found in localStorage');
+        }
+        
+        const evolution = localStorage.getItem('evolutionLevel');
+        if (evolution) {
+          evolutionLevel = parseInt(evolution, 10) || 1;
+          console.log('Found stored evolution level:', evolutionLevel);
+        } else {
+          console.log('No evolution level found in localStorage');
+        }
+      }
+    } catch (e) {
+      console.error('Error getting appearance data from localStorage:', e);
+    }
+    
+    return { appearance, evolutionLevel };
+  };
+  
   // Start matchmaking to find an opponent
   const startMatchmaking = useCallback(() => {
     setConnectionStatus('connecting');
@@ -559,12 +791,21 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           className: "pixel-text"
         });
         
+        // Get appearance data from localStorage
+        const { appearance, evolutionLevel } = getAppearanceData();
+        
         // Join the matchmaking queue
         if (socketRef.current && socketRef.current.connected) {
+          console.log('Joining queue with user ID:', userIdRef.current);
+          console.log('Sending appearance:', appearance);
+          console.log('Sending evolution level:', evolutionLevel);
+          
           const joinQueueMessage = {
             type: 'JOIN_QUEUE',
             userId: userIdRef.current,
-            username: settings.username || 'Anonymous Blob'
+            username: settings.username || 'Anonymous Blob',
+            appearance,
+            evolutionLevel
           };
           
           socketRef.current.emit('message', joinQueueMessage);
@@ -627,12 +868,21 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       className: "pixel-text"
     });
     
+    // Get appearance data from localStorage
+    const { appearance, evolutionLevel } = getAppearanceData();
+    
     // Request a battle code from the server
     if (socketRef.current && socketRef.current.connected) {
+      console.log('Creating battle with user ID:', userIdRef.current);
+      console.log('Sending appearance:', appearance);
+      console.log('Sending evolution level:', evolutionLevel);
+      
       const createBattleMessage = {
         type: 'CREATE_BATTLE',
         userId: userIdRef.current,
-        username: settings.username || 'Anonymous Blob'
+        username: settings.username || 'Anonymous Blob',
+        appearance,
+        evolutionLevel
       };
       
       socketRef.current.emit('message', createBattleMessage);
@@ -672,13 +922,22 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       className: "pixel-text"
     });
     
+    // Get appearance data from localStorage
+    const { appearance, evolutionLevel } = getAppearanceData();
+    
     // Send join request to the server
     if (socketRef.current && socketRef.current.connected) {
+      console.log('Joining battle with user ID:', userIdRef.current);
+      console.log('Sending appearance:', appearance);
+      console.log('Sending evolution level:', evolutionLevel);
+      
       const joinBattleMessage = {
         type: 'JOIN_BATTLE',
         userId: userIdRef.current,
         username: settings.username || 'Anonymous Blob',
-        code
+        code,
+        appearance,
+        evolutionLevel
       };
       
       socketRef.current.emit('message', joinBattleMessage);
@@ -753,7 +1012,9 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     battleState,
     messages,
     matchmakingQueue,
-    serverMessages: messages,
+    serverMessages: messages.filter(m => m.type === 'system' || m.type === 'error'),
+    opponentAppearance,
+    opponentEvolutionLevel,
     
     // Actions
     startMatchmaking,
