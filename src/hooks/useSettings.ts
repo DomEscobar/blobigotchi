@@ -8,6 +8,7 @@ interface Settings {
   theme: Theme;
   devMode?: boolean;
   username: string;
+  enableWeatherEffects: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -15,7 +16,8 @@ const DEFAULT_SETTINGS: Settings = {
   notifications: true,
   theme: 'default',
   devMode: false,
-  username: `Blob Trainer ${Math.floor(Math.random() * 9000) + 1000}`
+  username: `Blob Trainer ${Math.floor(Math.random() * 9000) + 1000}`,
+  enableWeatherEffects: true
 };
 
 export function useSettings() {

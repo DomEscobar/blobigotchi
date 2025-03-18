@@ -115,15 +115,16 @@ export function useBlobAppearance(evolutionLevel: number) {
             mouth: unlockedOptions.mouths.includes(parsed.mouth) ? parsed.mouth : 'default',
             attack: unlockedOptions.attacks.includes(parsed.attack) ? parsed.attack : 'none'
           };
+          console.log('savedAppearance', savedAppearance);
           setAppearance(validAppearance);
         } catch (e) {
           console.error('Error parsing saved appearance', e);
         }
       }
     }
-  }, [unlockedOptions]);
+  }, []);  // Only run on initial mount, not when unlockedOptions changes
   
-  // Update specific appearance attributes
+  
   const setType = (type: BlobType) => {
     if (unlockedOptions.types.includes(type)) {
       setAppearance(prev => ({ ...prev, type }));

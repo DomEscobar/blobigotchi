@@ -11,6 +11,8 @@ import BattleArcade from './BattleArcade';
 import BlobBattlegroundsWithProvider from './BlobBattlegrounds';
 import AppearanceTreasure from './AppearanceTreasure';
 import { useBlobAppearance } from '@/hooks/useBlobAppearance';
+import { useWeather } from '@/hooks/useWeather';
+import WeatherEffects from './weather/WeatherEffects';
 
 interface HabitatProps {
   mood: BlobMood;
@@ -28,6 +30,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
   const { playSoundEffect } = useSounds();
   const { settings } = useSettings();
   const { appearance, unlockedOptions, setType, setEyes, setMouth, setAttack, resetAppearance } = useBlobAppearance(evolutionLevel);
+  const { weather, locationSource } = useWeather();
 
   const handleFridgeClick = () => {
     setIsFridgeOpen(prev => !prev);
@@ -93,24 +96,96 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
   };
 
   const getBgClass = () => {
-    if (['sad', 'hungry', 'tired', 'sick'].includes(mood)) {
-      return 'from-crt-background/90 to-crt-dark/95';
-    } else if (mood === 'happy') {
-      return 'from-crt-background to-crt-dark/80';
+    // First adjust based on time of day
+    if (weather.timeOfDay === 'night') {
+      // Night backgrounds
+      if (weather.type === 'thunderstorm') {
+        return 'from-indigo-950/95 to-gray-950/98'; 
+      } else if (weather.type === 'rain') {
+        return 'from-blue-950/90 to-gray-950/95';
+      } else if (weather.type === 'snow') {
+        return 'from-blue-950/70 to-gray-800/80';
+      } else if (weather.type === 'fog') {
+        return 'from-gray-700/80 to-gray-900/90';
+      } else if (weather.type === 'clouds') {
+        return 'from-indigo-900/80 to-gray-900/90';
+      } else {
+        // Clear night sky
+        return 'from-indigo-900/70 to-gray-950/90';
+      }
+    } else if (weather.timeOfDay === 'sunrise') {
+      // Sunrise backgrounds
+      if (weather.type === 'thunderstorm') {
+        return 'from-purple-700/80 to-gray-800/90'; 
+      } else if (weather.type === 'rain') {
+        return 'from-blue-600/70 to-gray-700/85';
+      } else if (weather.type === 'snow') {
+        return 'from-blue-300/60 to-gray-400/70';
+      } else if (weather.type === 'fog') {
+        return 'from-gray-400/80 to-orange-200/50';
+      } else if (weather.type === 'clouds') {
+        return 'from-orange-300/60 to-blue-400/70';
+      } else {
+        // Clear sunrise
+        return 'from-orange-400/50 to-blue-600/70';
+      }
+    } else if (weather.timeOfDay === 'sunset') {
+      // Sunset backgrounds
+      if (weather.type === 'thunderstorm') {
+        return 'from-red-800/70 to-gray-800/90'; 
+      } else if (weather.type === 'rain') {
+        return 'from-red-600/60 to-gray-700/85';
+      } else if (weather.type === 'snow') {
+        return 'from-orange-200/60 to-gray-400/70';
+      } else if (weather.type === 'fog') {
+        return 'from-orange-300/70 to-gray-500/80';
+      } else if (weather.type === 'clouds') {
+        return 'from-orange-500/60 to-gray-600/70';
+      } else {
+        // Clear sunset
+        return 'from-orange-500/60 to-indigo-800/70';
+      }
+    } else {
+      // Daytime backgrounds
+      if (weather.type === 'thunderstorm') {
+        return 'from-indigo-600/80 to-gray-800/90'; 
+      } else if (weather.type === 'rain') {
+        return 'from-blue-600/70 to-gray-700/80';
+      } else if (weather.type === 'snow') {
+        return 'from-blue-100/60 to-gray-300/70';
+      } else if (weather.type === 'fog') {
+        return 'from-gray-300/80 to-gray-500/90';
+      } else if (weather.type === 'clouds') {
+        return 'from-blue-400/70 to-gray-500/80';
+      } else {
+        // Clear day - adjust based on mood
+        if (['sad', 'hungry', 'tired', 'sick'].includes(mood)) {
+          return 'from-crt-background/90 to-crt-dark/95';
+        } else if (mood === 'happy') {
+          return 'from-crt-background to-crt-dark/80';
+        }
+        return 'from-crt-background to-crt-dark';
+      }
     }
-    return 'from-crt-background to-crt-dark';
   };
 
   return (
     <>
-
       <div className={`relative w-full h-full rounded-lg overflow-hidden ${className}`}>
         {/* Background gradient */}
         <div className={`absolute inset-0 bg-gradient-to-b ${getBgClass()} transition-all duration-1000`}>
+          {/* Show weather effects based on current weather */}
+          {settings.enableWeatherEffects !== false && 
+            <WeatherEffects 
+              weatherType={weather.type} 
+              timeOfDay={weather.timeOfDay} 
+            />
+          }
+
           {/* Floor */}
           <div className="absolute bottom-0 left-0 right-0 h-24 w-full overflow-hidden">
             <div className="w-full h-full" style={{
-              backgroundImage: `repeating-conic-gradient(#333 0% 25%, #444 0% 50%)`,
+              backgroundImage: `repeating-conic-gradient(${weather.timeOfDay === 'night' ? '#222 0% 25%, #333' : '#333 0% 25%, #444'} 0% 50%)`,
               backgroundSize: '32px 32px',
               transform: 'perspective(300px) rotateX(45deg)',
               transformOrigin: 'bottom'
@@ -202,6 +277,39 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
 
           {evolutionLevel >= 11 && (
             <AdultRoom onInteraction={handleToyInteraction} mood={mood} />
+          )}
+
+          {/* Weather Info Indicator - shows current weather and time info */}
+          {weather.type !== 'loading' && (
+            <div className="absolute top-2 left-2 p-1.5 bg-crt-dark/70 backdrop-blur-sm rounded-md border border-white/10 z-30">
+              <div className="flex flex-col space-y-0.5">
+                <div className="flex items-center space-x-1">
+                  <div 
+                    className={`w-2 h-2 rounded-full ${
+                      weather.type === 'clear' ? 'bg-yellow-400' : 
+                      weather.type === 'clouds' ? 'bg-gray-300' : 
+                      weather.type === 'rain' ? 'bg-blue-400' : 
+                      weather.type === 'snow' ? 'bg-white' : 
+                      weather.type === 'thunderstorm' ? 'bg-purple-500' : 
+                      'bg-gray-400'
+                    }`}
+                  />
+                  <span className="pixel-text text-[8px] text-white">
+                    {weather.description} • {weather.timeOfDay}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className="pixel-text text-[7px] text-white/70">
+                    {weather.location} 
+                    <span className="text-[6px] ml-1 text-white/50">
+                      {locationSource === 'browser' ? '(GPS)' : 
+                       locationSource === 'ip' ? '(IP)' : 
+                       '(default)'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
           )}
 
           {mood === 'happy' && (
