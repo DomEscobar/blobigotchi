@@ -7,7 +7,6 @@ import Settings from './Settings';
 import { useSettings } from '@/hooks/useSettings';
 import { useToast } from '@/hooks/use-toast';
 import { useSounds } from '@/hooks/useSounds';
-import BlobBattlegrounds from './BlobBattlegrounds';
 
 interface ActionPanelProps {
   stats: Pick<BlobStats, 'hunger' | 'energy' | 'hygiene' | 'evolutionLevel'>;
@@ -26,37 +25,31 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   // Rename the destructured handleDevAction to devActionHandler to avoid naming conflicts
   const { feedBlob, playWithBlob, cleanBlob, restBlob, handleDevAction: devActionHandler } = actions;
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [battlegroundsOpen, setBattlegroundsOpen] = useState(false);
   const { settings, updateSettings } = useSettings();
   const { toast } = useToast();
   const { playSoundEffect } = useSounds();
-  
+
   // Play sounds only if enabled in settings
   const playSound = (sound: 'feed' | 'play' | 'clean' | 'rest' | 'click') => {
     if (settings.sound) {
       playSoundEffect(sound);
     }
   };
-  
+
   const handleSettingsClick = () => {
     setSettingsOpen(true);
     playSound('click');
   };
-  
-  const handleBattleClick = () => {
-    setBattlegroundsOpen(true);
-    playSound('click');
-  };
-  
+
   const handleSettingsChange = (newSettings: Partial<typeof settings>) => {
     updateSettings(newSettings);
-    
+
     // Play a sound when settings are changed if sounds are enabled
     // If we're enabling sounds, play a sound to demonstrate
     if (newSettings.sound === true || (settings.sound && newSettings.sound !== false)) {
       playSoundEffect('click');
     }
-    
+
     // Show feedback when settings are changed
     if (settings.notifications || (newSettings.notifications !== false)) {
       toast({
@@ -72,65 +65,59 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
       devActionHandler(action, value);
     }
   };
-  
+
   return (
     <>
       <div className="grid grid-cols-5 gap-1 p-2 md:p-3 bg-gray-900/70 border-t border-gray-700">
-        <ActionButton 
-          label="FEED" 
-          icon={Utensils} 
+        <ActionButton
+          label="FEED"
+          icon={Utensils}
           onClick={() => {
             feedBlob();
             playSound('feed');
-          }} 
+          }}
           disabled={hunger >= 100}
         />
-        <ActionButton 
-          label="PLAY" 
-          icon={Gamepad} 
+        <ActionButton
+          label="PLAY"
+          icon={Gamepad}
           onClick={() => {
             playWithBlob();
             playSound('play');
           }}
           disabled={energy <= 10}
         />
-        <ActionButton 
-          label="CLEAN" 
-          icon={Bath} 
+        <ActionButton
+          label="CLEAN"
+          icon={Bath}
           onClick={() => {
             cleanBlob();
             playSound('clean');
           }}
           disabled={hygiene >= 100}
         />
-        <ActionButton 
-          label="REST" 
-          icon={Sparkles} 
+        <ActionButton
+          label="REST"
+          icon={Sparkles}
           onClick={() => {
             restBlob();
             playSound('rest');
           }}
           disabled={energy >= 100}
         />
-        <ActionButton 
-          label="CONFIG" 
-          icon={SettingsIcon} 
+        <ActionButton
+          label="CONFIG"
+          icon={SettingsIcon}
           onClick={handleSettingsClick}
         />
       </div>
-      
-      <Settings 
+
+      <Settings
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
         settings={settings}
         onSettingsChange={handleSettingsChange}
         onDevAction={handleDevAction}
-      />
-      
-      <BlobBattlegrounds
-        open={battlegroundsOpen}
-        onOpenChange={setBattlegroundsOpen}
-        evolutionLevel={evolutionLevel}
       />
     </>
   );

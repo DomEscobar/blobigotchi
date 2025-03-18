@@ -111,6 +111,12 @@ const config = {
           "0%, 100%": { transform: "rotate(0deg)" },
           "25%": { transform: "rotate(-15deg)" },
           "75%": { transform: "rotate(15deg)" },
+        },
+        "progress": {
+          "0%": { width: "0%" },
+          "50%": { width: "70%" },
+          "70%": { width: "40%" },
+          "100%": { width: "100%" },
         }
       },
       animation: {
@@ -123,6 +129,7 @@ const config = {
         "pulse": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "spin-slow": "spin-slow 3s linear infinite",
         "shake": "shake 0.5s ease-in-out",
+        "progress": "progress 2s ease-in-out infinite"
       },
     },
   },

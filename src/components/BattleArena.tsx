@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useWebRTC } from '@/hooks/useWebRTC';
-import { Shield, Zap, Heart, Swords, MessageCircle, X } from 'lucide-react';
+import { X, Shield, Swords } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useSettings } from '@/hooks/useSettings';
-import { useGunDB } from '@/hooks/useGunDB';
-import BattleBlob from './BattleBlob';
-
-interface BattleMove {
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  type: 'attack' | 'defense' | 'special';
-}
+import { useBattle } from '@/contexts/BattleContext';
 
 interface BattleArenaProps {
   evolutionLevel: number;
@@ -20,238 +11,280 @@ interface BattleArenaProps {
 }
 
 const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose }) => {
+  const [showEndScreen, setShowEndScreen] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [selectedMove, setSelectedMove] = useState<string | null>(null);
+  
   const { 
     battleState, 
-    executeMove, 
     opponentName, 
-    connectionStatus,
-    messages,
-    sendMessage,
+    executeMove, 
     disconnect
-  } = useWebRTC();
+  } = useBattle();
   
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const isMobile = useIsMobile();
-  const { settings } = useSettings();
-  const { recordBattle } = useGunDB();
-  const [moveHistory, setMoveHistory] = useState<string[]>([]);
-  
+  // Setup keyboard shortcuts
   useEffect(() => {
-    if (battleState?.lastMove && !moveHistory.includes(battleState.lastMove)) {
-      setMoveHistory(prev => [...prev, battleState.lastMove]);
-    }
-  }, [battleState?.lastMove, moveHistory]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      
+      // Number keys 1-4 for selecting moves
+      if (['1', '2', '3', '4'].includes(key) && !showEndScreen && battleState?.turn === 'player') {
+        const moveIndex = parseInt(key) - 1;
+        const moves = ['Pixel Punch', 'Blob Beam', 'Digital Dash', 'Static Slam'];
+        
+        if (moveIndex >= 0 && moveIndex < moves.length) {
+          executeMove(moves[moveIndex]);
+        }
+      }
+      
+      // Escape key to show confirm dialog
+      if (e.key === 'Escape') {
+        setShowOverlay(true);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [battleState, showEndScreen, executeMove]);
   
+  // Show end screen when battle is over
   useEffect(() => {
-    if (battleState?.gameOver && battleState.winner) {
-      recordBattle({
-        player1: settings.username,
-        player2: opponentName || 'CPU Opponent',
-        winner: battleState.winner === 'player' ? settings.username : opponentName || 'CPU Opponent',
-        date: Date.now(),
-        moves: moveHistory,
-      });
-      console.log('Battle recorded to GunDB');
+    if (battleState?.gameOver) {
+      setShowEndScreen(true);
     }
-  }, [battleState?.gameOver, battleState?.winner, moveHistory, opponentName, recordBattle, settings.username]);
+  }, [battleState?.gameOver]);
   
-  const getMoves = (): BattleMove[] => {
-    if (evolutionLevel <= 3) {
-      return [
-        { name: 'Milk Splash', description: 'A basic splash attack', icon: <Zap size={16} />, type: 'attack' },
-        { name: 'Tummy Rush', description: 'Charge with your tummy!', icon: <Swords size={16} />, type: 'attack' },
-        { name: 'Nap Heal', description: 'Restore some health', icon: <Heart size={16} />, type: 'defense' },
-        { name: 'Baby Barrier', description: 'Reduce incoming damage', icon: <Shield size={16} />, type: 'defense' }
-      ];
-    } else if (evolutionLevel <= 6) {
-      return [
-        { name: 'Pixel Punch', description: 'A solid hit', icon: <Swords size={16} />, type: 'attack' },
-        { name: 'Static Shock', description: 'Electrify your opponent', icon: <Zap size={16} />, type: 'attack' },
-        { name: 'Candy Heal', description: 'Restore health with candy', icon: <Heart size={16} />, type: 'defense' },
-        { name: 'Block Shield', description: 'Block incoming damage', icon: <Shield size={16} />, type: 'defense' }
-      ];
-    } else {
-      return [
-        { name: 'Chaos Beam', description: 'A powerful energy attack', icon: <Zap size={16} />, type: 'attack' },
-        { name: 'Pixel Uppercut', description: 'A devastating uppercut', icon: <Swords size={16} />, type: 'attack' },
-        { name: 'DNA Shield', description: 'Advanced protection', icon: <Shield size={16} />, type: 'defense' },
-        { name: 'Fusion Heal', description: 'Powerful recovery', icon: <Heart size={16} />, type: 'special' }
-      ];
-    }
-  };
-
-  const moves = getMoves();
-  
-  const handleMoveClick = (move: BattleMove) => {
-    if (connectionStatus !== 'connected' || !battleState) return;
+  // Handle move button click
+  const handleMoveClick = (moveName: string) => {
+    if (battleState?.turn !== 'player' || showEndScreen) return;
     
-    if (battleState.turn === 'player') {
-      executeMove(move.name);
-    }
-  };
-  
-  const handleChatSend = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const input = form.elements.namedItem('chatInput') as HTMLInputElement;
+    setSelectedMove(moveName);
     
-    if (input.value.trim()) {
-      sendMessage('chat', input.value.trim());
-      input.value = '';
-    }
+    // Execute the move with a small delay for animation
+    setTimeout(() => {
+      executeMove(moveName);
+      setSelectedMove(null);
+    }, 300);
   };
   
-  const chatMessages = messages.filter(m => m.type === 'chat');
+  // Handle closing the battle
+  const handleCloseBattle = () => {
+    disconnect();
+    onClose();
+  };
   
-  if (!battleState) {
+  // Render battle end screen if the battle is over
+  if (showEndScreen && battleState?.gameOver) {
+    const isVictory = battleState.winner === 'player';
+    
     return (
-      <div className="w-full h-full flex items-center justify-center">
-        <p className="pixel-text text-white text-center">No active battle</p>
+      <div className="relative h-full w-full flex flex-col items-center justify-center bg-gradient-to-b from-black to-gray-900 p-6">
+        <div className="absolute top-4 right-4">
+          <button onClick={handleCloseBattle} className="text-gray-400 hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="text-center max-w-md mx-auto">
+          <h1 className={`text-4xl font-bold pixel-text mb-6 ${isVictory ? 'text-green-400' : 'text-red-400'}`}>
+            {isVictory ? 'VICTORY!' : 'DEFEATED!'}
+          </h1>
+          
+          <div className="bg-black/50 rounded-lg border border-blob-tertiary/50 p-6 mb-6">
+            <p className="text-white pixel-text mb-4">
+              {isVictory 
+                ? 'Your blob has triumphed in battle!' 
+                : 'Your blob fought bravely, but was defeated.'}
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4 text-sm text-center">
+              <div>
+                <p className="text-gray-400 pixel-text">Your HP</p>
+                <p className={`text-xl font-bold pixel-text ${battleState.playerHP > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {battleState.playerHP}/100
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-400 pixel-text">Opponent HP</p>
+                <p className={`text-xl font-bold pixel-text ${battleState.opponentHP > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {battleState.opponentHP}/100
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <button 
+            onClick={handleCloseBattle}
+            className="px-6 py-3 bg-blob-tertiary hover:bg-blob-secondary text-white rounded pixel-text"
+          >
+            Return to Menu
+          </button>
+        </div>
       </div>
     );
   }
   
-  return (
-    <div className="relative w-full h-full flex flex-col overflow-hidden">
-      <button 
-        onClick={() => {
-          disconnect();
-          onClose();
-        }}
-        className="absolute top-2 right-2 z-50 p-1 bg-black/50 rounded-full"
-      >
-        <X size={16} className="text-white" />
-      </button>
-      
-      <div className="flex-1 bg-gray-800/70 flex flex-col items-center justify-center relative p-4 border-b border-gray-700">
-        <div className="absolute top-2 left-2 z-10">
-          <p className="pixel-text text-white text-xs">{opponentName || 'Opponent'}</p>
+  // Render confirmation overlay when trying to leave battle
+  if (showOverlay) {
+    return (
+      <div className="relative h-full w-full">
+        {/* Render the battle arena in the background */}
+        <div className="absolute inset-0 filter blur-sm">
+          <div className="h-full w-full flex flex-col justify-between bg-gradient-to-b from-black to-gray-900 p-6">
+            {/* Battle arena content (blurred) */}
+          </div>
         </div>
         
-        <div className="absolute top-2 right-2 w-1/3 h-4 bg-gray-900 border border-gray-700 rounded-sm overflow-hidden">
-          <div 
-            className="h-full bg-red-500 transition-all duration-300"
-            style={{ width: `${(battleState.opponentHP / 100) * 100}%` }}
-          ></div>
-        </div>
-        
-        <div className="transform scale-x-[-1]">
-          <BattleBlob 
-            mood="normal" 
-            evolutionLevel={evolutionLevel} 
-            isAttacking={battleState.turn === 'opponent'}
-            isHurt={battleState.lastMove && battleState.turn === 'player'}
-          />
-        </div>
-      </div>
-      
-      <div className="h-16 bg-black/80 border-y border-gray-700 p-2 overflow-hidden">
-        <p className="pixel-text text-white text-xs animate-fade-in">
-          {battleState.lastMove ? (
-            <>
-              {battleState.turn === 'player' 
-                ? `Opponent used ${battleState.lastMove}! Dealt ${battleState.lastDamage} damage!` 
-                : `You used ${battleState.lastMove}! Dealt ${battleState.lastDamage} damage!`}
-            </>
-          ) : (
-            <>
-              {battleState.turn === 'player' 
-                ? "Your turn! Select a move to attack."
-                : "Opponent's turn. Waiting for their move..."}
-            </>
-          )}
-        </p>
-        <p className="pixel-text text-gray-400 text-[10px] mt-1">
-          Round {battleState.round} | {battleState.turn === 'player' ? 'Your turn' : "Opponent's turn"}
-        </p>
-      </div>
-      
-      <div className="flex-1 bg-gray-900/90 flex flex-col items-center justify-center relative p-4">
-        <div className="absolute bottom-2 left-2 z-10">
-          <p className="pixel-text text-white text-xs">{settings.username || 'You'}</p>
-        </div>
-        
-        <div className="absolute bottom-2 right-2 w-1/3 h-4 bg-gray-800 border border-gray-700 rounded-sm overflow-hidden">
-          <div 
-            className="h-full bg-green-500 transition-all duration-300"
-            style={{ width: `${(battleState.playerHP / 100) * 100}%` }}
-          ></div>
-        </div>
-        
-        <BattleBlob 
-          mood="normal" 
-          evolutionLevel={evolutionLevel} 
-          isAttacking={battleState.turn === 'player' && battleState.lastMove !== undefined}
-          isHurt={battleState.lastMove && battleState.turn === 'opponent'}
-        />
-      </div>
-      
-      <div className="h-32 bg-black/80 border-t border-gray-700 p-2">
-        {isChatOpen ? (
-          <div className="h-full flex flex-col">
-            <div className="flex-1 overflow-y-auto mb-2 bg-gray-900/50 rounded p-1">
-              {chatMessages.length === 0 ? (
-                <p className="pixel-text text-gray-500 text-[10px]">No messages yet. Say hello!</p>
-              ) : (
-                chatMessages.map((msg, i) => (
-                  <div key={i} className="mb-1">
-                    <span className={`pixel-text text-[10px] ${msg.sender === (settings.username || 'Anonymous Blob') ? 'text-green-400' : 'text-blue-400'}`}>
-                      {msg.sender}:
-                    </span>
-                    <span className="pixel-text text-white text-[10px] ml-1">{msg.data}</span>
-                  </div>
-                ))
-              )}
-            </div>
-            <form onSubmit={handleChatSend} className="flex">
-              <input 
-                type="text" 
-                name="chatInput"
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-l text-white pixel-text text-xs p-1"
-                placeholder="Send a message"
-              />
+        {/* Confirmation overlay */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+          <div className="bg-black rounded-lg border border-blob-tertiary p-6 max-w-sm">
+            <h3 className="text-xl font-bold text-white pixel-text mb-4">Leave Battle?</h3>
+            <p className="text-gray-300 pixel-text mb-6">
+              Are you sure you want to leave the battle? This will count as a forfeit.
+            </p>
+            
+            <div className="flex space-x-4">
               <button 
-                type="submit"
-                className="bg-gray-700 border border-gray-600 rounded-r px-2 text-white pixel-text text-xs"
+                onClick={handleCloseBattle}
+                className="flex-1 px-4 py-2 bg-red-800 hover:bg-red-700 text-white rounded pixel-text"
               >
-                Send
+                Leave Battle
               </button>
-            </form>
+              <button 
+                onClick={() => setShowOverlay(false)}
+                className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded pixel-text"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Main battle arena screen
+  return (
+    <div className="h-full w-full flex flex-col justify-between bg-gradient-to-b from-black to-gray-900 p-6">
+      <div className="absolute top-4 right-4">
+        <button onClick={() => setShowOverlay(true)} className="text-gray-400 hover:text-white">
+          <X size={20} />
+        </button>
+      </div>
+      
+      {/* Opponent section */}
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h3 className="text-lg text-white pixel-text">{opponentName || 'Opponent'}</h3>
+          <div className="bg-gray-800 rounded-lg w-64 h-4 mt-1">
+            <div 
+              className="bg-gradient-to-r from-red-600 to-red-400 h-full rounded-lg transition-all duration-500 ease-out"
+              style={{ width: `${(battleState?.opponentHP || 0) / 100 * 100}%` }}
+            ></div>
+          </div>
+          <p className="text-xs text-gray-400 pixel-text mt-1">
+            HP: {battleState?.opponentHP || 0}/100
+          </p>
+        </div>
+        
+        <div className="h-32 w-32 relative">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-20 h-20 bg-blob-secondary rounded-full animate-pulse opacity-50"></div>
+          </div>
+          {/* Placeholder for opponent's blob image */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Shield size={40} className="text-blob-tertiary" />
+          </div>
+        </div>
+      </div>
+      
+      {/* Battle log section */}
+      <div className="flex-1 my-4 flex flex-col items-center justify-center">
+        {battleState?.lastMove ? (
+          <div className="text-center mb-4">
+            <p className="text-white pixel-text">
+              {battleState.turn === 'player' 
+                ? `${opponentName || 'Opponent'} used ${battleState.lastMove}!` 
+                : `You used ${battleState.lastMove}!`}
+            </p>
+            {battleState.lastDamage && (
+              <p className="text-red-400 pixel-text mt-1">
+                Dealt {battleState.lastDamage} damage!
+              </p>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2 h-full">
-            {moves.map((move, index) => (
-              <button
-                key={index}
-                onClick={() => handleMoveClick(move)}
-                disabled={battleState.turn !== 'player'}
-                className={cn(
-                  "pixel-button text-left flex items-center overflow-hidden relative",
-                  move.type === 'attack' && "border-red-900/50 bg-red-950/30",
-                  move.type === 'defense' && "border-blue-900/50 bg-blue-950/30",
-                  move.type === 'special' && "border-purple-900/50 bg-purple-950/30",
-                  battleState.turn !== 'player' && "opacity-50 cursor-not-allowed"
-                )}
-              >
-                <div className="mr-2">{move.icon}</div>
-                <div>
-                  <div className="pixel-text text-white text-xs">{move.name}</div>
-                  {!isMobile && (
-                    <div className="pixel-text text-gray-400 text-[8px]">{move.description}</div>
-                  )}
-                </div>
-              </button>
-            ))}
+          <div className="text-center mb-4">
+            <p className="text-white pixel-text">
+              {battleState?.turn === 'player'
+                ? 'Your turn! Choose a move.'
+                : `Waiting for ${opponentName || 'opponent'} to make a move...`}
+            </p>
+          </div>
+        )}
+        
+        {battleState?.turn !== 'player' && (
+          <div className="animate-pulse">
+            <span className="inline-block w-4 h-4 bg-blob-primary rounded-full mx-1"></span>
+            <span className="inline-block w-4 h-4 bg-blob-primary rounded-full mx-1 animate-delay-200"></span>
+            <span className="inline-block w-4 h-4 bg-blob-primary rounded-full mx-1 animate-delay-400"></span>
           </div>
         )}
       </div>
       
-      <button 
-        onClick={() => setIsChatOpen(!isChatOpen)}
-        className="absolute bottom-2 left-1/2 transform -translate-x-1/2 translate-y-16 p-2 bg-gray-800 rounded-full border border-gray-700 z-20"
-      >
-        <MessageCircle size={18} className={`${isChatOpen ? 'text-green-400' : 'text-white'}`} />
-      </button>
+      {/* Player section */}
+      <div className="flex justify-between items-center">
+        <div className="h-32 w-32 relative">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-20 h-20 bg-blob-primary rounded-full animate-pulse opacity-50"></div>
+          </div>
+          {/* Placeholder for player's blob image */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Swords size={40} className="text-blob-primary" />
+          </div>
+        </div>
+        
+        <div className="text-right">
+          <h3 className="text-lg text-white pixel-text">Your Blob</h3>
+          <div className="bg-gray-800 rounded-lg w-64 h-4 mt-1">
+            <div 
+              className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-lg transition-all duration-500 ease-out"
+              style={{ width: `${(battleState?.playerHP || 0) / 100 * 100}%` }}
+            ></div>
+          </div>
+          <p className="text-xs text-gray-400 pixel-text mt-1">
+            HP: {battleState?.playerHP || 0}/100
+          </p>
+        </div>
+      </div>
+      
+      {/* Moves section */}
+      <div className="grid grid-cols-2 gap-4 mt-6">
+        {['Pixel Punch', 'Blob Beam', 'Digital Dash', 'Static Slam'].map((move, index) => (
+          <Button
+            key={move}
+            onClick={() => handleMoveClick(move)}
+            disabled={battleState?.turn !== 'player'}
+            className={cn(
+              "pixel-button h-16 p-4",
+              selectedMove === move ? "animate-button-press" : "",
+              battleState?.turn !== 'player' ? "opacity-50 cursor-not-allowed" : "",
+              index === 0 ? "bg-red-900/30 border-red-700 hover:border-red-600" : "",
+              index === 1 ? "bg-blue-900/30 border-blue-700 hover:border-blue-600" : "",
+              index === 2 ? "bg-green-900/30 border-green-700 hover:border-green-600" : "",
+              index === 3 ? "bg-purple-900/30 border-purple-700 hover:border-purple-600" : ""
+            )}
+          >
+            <div className="w-full flex items-center justify-between">
+              <span className="pixel-text text-white">{move}</span>
+              <span className="text-xs text-gray-400">#{index + 1}</span>
+            </div>
+          </Button>
+        ))}
+      </div>
     </div>
   );
 };
