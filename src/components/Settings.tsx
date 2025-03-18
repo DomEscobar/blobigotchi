@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -14,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSounds } from '@/hooks/useSounds';
+import { useSettingsRedux } from '@/hooks/useSettingsRedux';
 
 interface SettingsProps {
   open: boolean;
@@ -23,6 +23,7 @@ interface SettingsProps {
     notifications: boolean;
     theme: 'default' | 'blue' | 'green' | 'pink';
     devMode?: boolean;
+    enableWeatherEffects: boolean;
   };
   onSettingsChange: (settings: Partial<SettingsProps['settings']>) => void;
   onDevAction?: (action: string, value?: number) => void;
@@ -30,12 +31,13 @@ interface SettingsProps {
 
 const Settings: React.FC<SettingsProps> = ({ 
   open, 
-  onOpenChange, 
+  onOpenChange,
   settings, 
   onSettingsChange,
   onDevAction
 }) => {
   const { playSoundEffect } = useSounds();
+  const { setSound, setNotifications, setTheme, setDevMode } = useSettingsRedux();
   const [cheatCode, setCheatCode] = useState("");
   const [evolutionValue, setEvolutionValue] = useState<number>(1);
   
@@ -44,6 +46,7 @@ const Settings: React.FC<SettingsProps> = ({
     if (checked) {
       playSoundEffect('click');
     }
+    setSound(checked);
     onSettingsChange({ sound: checked });
   };
   
@@ -51,6 +54,7 @@ const Settings: React.FC<SettingsProps> = ({
     if (settings.sound) {
       playSoundEffect('click');
     }
+    setTheme(value);
     onSettingsChange({ theme: value });
   };
 
@@ -59,6 +63,7 @@ const Settings: React.FC<SettingsProps> = ({
       if (settings.sound) {
         playSoundEffect('click');
       }
+      setDevMode(true);
       onSettingsChange({ devMode: true });
       setCheatCode("");
     }
@@ -103,6 +108,7 @@ const Settings: React.FC<SettingsProps> = ({
               checked={settings.notifications}
               onCheckedChange={(checked) => {
                 if (settings.sound) playSoundEffect('click');
+                setNotifications(checked);
                 onSettingsChange({ notifications: checked });
               }}
               className="data-[state=checked]:bg-blob-secondary"

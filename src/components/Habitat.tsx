@@ -4,15 +4,15 @@ import { toast } from "sonner";
 import { useIsMobile } from '@/hooks/use-mobile';
 import ToyBox from './ToyBox';
 import { useSounds } from '@/hooks/useSounds';
-import { useSettings } from '@/hooks/useSettings';
+import { useSettingsRedux } from '@/hooks/useSettingsRedux';
 import BabyRoom from './environments/BabyRoom';
 import AdultRoom from './environments/AdultRoom';
 import BattleArcade from './BattleArcade';
-import BlobBattlegroundsWithProvider from './BlobBattlegrounds';
 import AppearanceTreasure from './AppearanceTreasure';
-import { useBlobAppearance } from '@/hooks/useBlobAppearance';
+import { useBlobAppearanceRedux } from '@/hooks/useBlobAppearanceRedux';
 import { useWeather } from '@/hooks/useWeather';
 import WeatherEffects from './weather/WeatherEffects';
+import { useAppSelector } from '@/store/store';
 
 interface HabitatProps {
   mood: BlobMood;
@@ -23,13 +23,20 @@ interface HabitatProps {
   setIsBattlegroundsOpen: (open: boolean) => void;
 }
 
-const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', evolutionLevel = 1, isBattlegroundsOpen, setIsBattlegroundsOpen }) => {
+const Habitat: React.FC<HabitatProps> = ({ 
+  mood, 
+  onBlobClick, 
+  className = '', 
+  evolutionLevel = 1, 
+  isBattlegroundsOpen, 
+  setIsBattlegroundsOpen 
+}) => {
   const isMobile = useIsMobile();
   const [isFridgeOpen, setIsFridgeOpen] = useState(false);
   const [isTvOn, setIsTvOn] = useState(false);
   const { playSoundEffect } = useSounds();
-  const { settings } = useSettings();
-  const { appearance, unlockedOptions, setType, setEyes, setMouth, setAttack, resetAppearance } = useBlobAppearance(evolutionLevel);
+  const { settings } = useSettingsRedux();
+  const { appearance, unlockedOptions, setType, setEyes, setMouth, setAttack, resetAppearance } = useBlobAppearanceRedux();
   const { weather, locationSource } = useWeather();
 
   const handleFridgeClick = () => {
@@ -100,7 +107,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
     if (weather.timeOfDay === 'night') {
       // Night backgrounds
       if (weather.type === 'thunderstorm') {
-        return 'from-indigo-950/95 to-gray-950/98'; 
+        return 'from-indigo-950/95 to-gray-950/98';
       } else if (weather.type === 'rain') {
         return 'from-blue-950/90 to-gray-950/95';
       } else if (weather.type === 'snow') {
@@ -116,7 +123,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
     } else if (weather.timeOfDay === 'sunrise') {
       // Sunrise backgrounds
       if (weather.type === 'thunderstorm') {
-        return 'from-purple-700/80 to-gray-800/90'; 
+        return 'from-purple-700/80 to-gray-800/90';
       } else if (weather.type === 'rain') {
         return 'from-blue-600/70 to-gray-700/85';
       } else if (weather.type === 'snow') {
@@ -132,7 +139,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
     } else if (weather.timeOfDay === 'sunset') {
       // Sunset backgrounds
       if (weather.type === 'thunderstorm') {
-        return 'from-red-800/70 to-gray-800/90'; 
+        return 'from-red-800/70 to-gray-800/90';
       } else if (weather.type === 'rain') {
         return 'from-red-600/60 to-gray-700/85';
       } else if (weather.type === 'snow') {
@@ -148,7 +155,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
     } else {
       // Daytime backgrounds
       if (weather.type === 'thunderstorm') {
-        return 'from-indigo-600/80 to-gray-800/90'; 
+        return 'from-indigo-600/80 to-gray-800/90';
       } else if (weather.type === 'rain') {
         return 'from-blue-600/70 to-gray-700/80';
       } else if (weather.type === 'snow') {
@@ -175,10 +182,10 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
         {/* Background gradient */}
         <div className={`absolute inset-0 bg-gradient-to-b ${getBgClass()} transition-all duration-1000`}>
           {/* Show weather effects based on current weather */}
-          {settings.enableWeatherEffects !== false && 
-            <WeatherEffects 
-              weatherType={weather.type} 
-              timeOfDay={weather.timeOfDay} 
+          {settings.enableWeatherEffects !== false &&
+            <WeatherEffects
+              weatherType={weather.type}
+              timeOfDay={weather.timeOfDay}
             />
           }
 
@@ -208,7 +215,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
 
           {/* Appearance Treasure - available at evolution level 2+ */}
           {evolutionLevel >= 2 && (
-            <AppearanceTreasure 
+            <AppearanceTreasure
               appearance={appearance}
               unlockedOptions={unlockedOptions}
               onColorChange={setType}
@@ -284,15 +291,14 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
             <div className="absolute top-2 left-2 p-1.5 bg-crt-dark/70 backdrop-blur-sm rounded-md border border-white/10 z-30">
               <div className="flex flex-col space-y-0.5">
                 <div className="flex items-center space-x-1">
-                  <div 
-                    className={`w-2 h-2 rounded-full ${
-                      weather.type === 'clear' ? 'bg-yellow-400' : 
-                      weather.type === 'clouds' ? 'bg-gray-300' : 
-                      weather.type === 'rain' ? 'bg-blue-400' : 
-                      weather.type === 'snow' ? 'bg-white' : 
-                      weather.type === 'thunderstorm' ? 'bg-purple-500' : 
-                      'bg-gray-400'
-                    }`}
+                  <div
+                    className={`w-2 h-2 rounded-full ${weather.type === 'clear' ? 'bg-yellow-400' :
+                        weather.type === 'clouds' ? 'bg-gray-300' :
+                          weather.type === 'rain' ? 'bg-blue-400' :
+                            weather.type === 'snow' ? 'bg-white' :
+                              weather.type === 'thunderstorm' ? 'bg-purple-500' :
+                                'bg-gray-400'
+                      }`}
                   />
                   <span className="pixel-text text-[8px] text-white">
                     {weather.description} • {weather.timeOfDay}
@@ -300,11 +306,11 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
                 </div>
                 <div className="flex items-center space-x-1">
                   <span className="pixel-text text-[7px] text-white/70">
-                    {weather.location} 
+                    {weather.location}
                     <span className="text-[6px] ml-1 text-white/50">
-                      {locationSource === 'browser' ? '(GPS)' : 
-                       locationSource === 'ip' ? '(IP)' : 
-                       '(default)'}
+                      {locationSource === 'browser' ? '(GPS)' :
+                        locationSource === 'ip' ? '(IP)' :
+                          '(default)'}
                     </span>
                   </span>
                 </div>

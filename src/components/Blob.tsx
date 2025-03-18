@@ -14,6 +14,7 @@ interface BlobProps {
 }
 
 const Blob: React.FC<BlobProps> = ({ mood, onClick, className, evolutionLevel = 1, appearance }) => {
+  console.log('Blob evolutionLevel', evolutionLevel, appearance);
   const [animationClass, setAnimationClass] = useState('animate-blob-idle');
   const [blobColor, setBlobColor] = useState('bg-blob-primary');
   const [isJiggling, setIsJiggling] = useState(false);

@@ -759,18 +759,13 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const appearanceData = localStorage.getItem('blobAppearance');
         if (appearanceData) {
           appearance = JSON.parse(appearanceData);
+          evolutionLevel = parseInt(appearance.evolutionLevel, 10) || 1;
+
           console.log('Found stored appearance:', appearance);
         } else {
           console.log('No appearance data found in localStorage');
         }
         
-        const evolution = localStorage.getItem('evolutionLevel');
-        if (evolution) {
-          evolutionLevel = parseInt(evolution, 10) || 1;
-          console.log('Found stored evolution level:', evolutionLevel);
-        } else {
-          console.log('No evolution level found in localStorage');
-        }
       }
     } catch (e) {
       console.error('Error getting appearance data from localStorage:', e);

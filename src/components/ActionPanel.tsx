@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import ActionButton from './ActionButton';
 import { Utensils, Gamepad, Bath, Sparkles, Settings as SettingsIcon } from 'lucide-react';
-import { BlobStats } from '@/hooks/useBlobStats';
+import { BlobStats } from '@/store/slices/blobStatsSlice';
 import Settings from './Settings';
-import { useSettings } from '@/hooks/useSettings';
+import { useSettingsRedux } from '@/hooks/useSettingsRedux';
 import { useToast } from '@/hooks/use-toast';
 import { useSounds } from '@/hooks/useSounds';
 
@@ -25,7 +24,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   // Rename the destructured handleDevAction to devActionHandler to avoid naming conflicts
   const { feedBlob, playWithBlob, cleanBlob, restBlob, handleDevAction: devActionHandler } = actions;
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { settings, updateSettings } = useSettings();
+  const { settings } = useSettingsRedux();
   const { toast } = useToast();
   const { playSoundEffect } = useSounds();
 
@@ -42,10 +41,9 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ stats, actions }) => {
   };
 
   const handleSettingsChange = (newSettings: Partial<typeof settings>) => {
-    updateSettings(newSettings);
-
+    // Settings are now handled by the Settings component directly
+    
     // Play a sound when settings are changed if sounds are enabled
-    // If we're enabling sounds, play a sound to demonstrate
     if (newSettings.sound === true || (settings.sound && newSettings.sound !== false)) {
       playSoundEffect('click');
     }

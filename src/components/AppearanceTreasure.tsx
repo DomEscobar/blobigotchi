@@ -63,15 +63,12 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
           mouth: appearance.mouth,
           attack: appearance.attack,
           selectedAttacks: attackState.selectedAttacks,
+          evolutionLevel: evolutionLevel
         };
 
         // Save to localStorage
         localStorage.setItem('blobAppearance', JSON.stringify(completeAppearance));
         console.log('AppearanceTreasure saved appearance:', completeAppearance);
-
-        // Also save evolution level
-        localStorage.setItem('evolutionLevel', evolutionLevel.toString());
-        console.log('AppearanceTreasure saved evolution level:', evolutionLevel);
       } catch (e) {
         console.error('Error saving appearance data to localStorage', e);
       }

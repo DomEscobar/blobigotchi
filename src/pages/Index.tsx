@@ -5,16 +5,16 @@ import StatsPanel from '@/components/StatsPanel';
 import ActionPanel from '@/components/ActionPanel';
 import TitleBar from '@/components/TitleBar';
 import Footer from '@/components/Footer';
-import { useBlobStats } from '@/hooks/useBlobStats';
+import { useBlobStatsRedux } from '@/hooks/useBlobStatsRedux';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useSettings } from '@/hooks/useSettings';
+import { useSettingsRedux } from '@/hooks/useSettingsRedux';
 import BlobBattlegroundsWithProvider from '@/components/BlobBattlegrounds';
 import { useBattle } from '@/contexts/BattleContext';
 
 const Index = () => {
   const isMobile = useIsMobile();
-  const { stats, actions } = useBlobStats();
-  const { settings } = useSettings();
+  const { stats, actions } = useBlobStatsRedux();
+  const { settings } = useSettingsRedux();
   const [isBattlegroundsOpen, setIsBattlegroundsOpen] = useState(false);
 
   return (

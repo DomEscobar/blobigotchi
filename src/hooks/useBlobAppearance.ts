@@ -24,8 +24,9 @@ interface AppearanceUnlocks {
   attacks: BlobAttack[];
 }
 
-export function useBlobAppearance(evolutionLevel: number) {
+export function useBlobAppearance(_evolutionLevel: number) {
   const { settings } = useSettings();
+  const [evolutionLevel, setEvolutionLevel] = useState(_evolutionLevel);
   
   // Default appearance
   const [appearance, setAppearance] = useState<BlobAppearance>({
@@ -53,12 +54,12 @@ export function useBlobAppearance(evolutionLevel: number) {
     };
     
     // Level 2: Unlock basic types
-    if (evolutionLevel >= 2) {
+    if (_evolutionLevel >= 2) {
       newUnlocks.types.push('fire', 'water');
     }
     
     // Level 3: Unlock more types and basic eyes
-    if (evolutionLevel >= 3) {
+    if (_evolutionLevel >= 3) {
       newUnlocks.types.push('grass');
       newUnlocks.eyes.push('round');
       newUnlocks.mouths.push('wide');
@@ -66,7 +67,7 @@ export function useBlobAppearance(evolutionLevel: number) {
     }
     
     // Level 4: Unlock even more customizations
-    if (evolutionLevel >= 4) {
+    if (_evolutionLevel >= 4) {
       newUnlocks.types.push('electric');
       newUnlocks.eyes.push('oval');
       newUnlocks.mouths.push('small');
@@ -74,7 +75,7 @@ export function useBlobAppearance(evolutionLevel: number) {
     }
     
     // Level 5: More unlocks
-    if (evolutionLevel >= 5) {
+    if (_evolutionLevel >= 5) {
       newUnlocks.types.push('rock', 'ice');
       newUnlocks.eyes.push('star');
       newUnlocks.mouths.push('kawaii');
@@ -82,7 +83,7 @@ export function useBlobAppearance(evolutionLevel: number) {
     }
     
     // Level 6: Unlocking more options
-    if (evolutionLevel >= 6) {
+    if (_evolutionLevel >= 6) {
       newUnlocks.types.push('fighting', 'poison');
       newUnlocks.eyes.push('heart');
       newUnlocks.mouths.push('surprised');
@@ -90,7 +91,7 @@ export function useBlobAppearance(evolutionLevel: number) {
     }
     
     // Level 7+: Final unlocks
-    if (evolutionLevel >= 7) {
+    if (_evolutionLevel >= 7) {
       newUnlocks.types.push('ground', 'psychic', 'ghost');
       newUnlocks.eyes.push('square');
       newUnlocks.mouths.push('cool');
@@ -99,31 +100,7 @@ export function useBlobAppearance(evolutionLevel: number) {
     
     setUnlockedOptions(newUnlocks);
     
-  }, [evolutionLevel]);
-  
-  // Load saved appearance on initial load
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedAppearance = localStorage.getItem('blobAppearance');
-      if (savedAppearance) {
-        try {
-          const parsed = JSON.parse(savedAppearance);
-          // Only apply saved options if they are unlocked
-          const validAppearance: BlobAppearance = {
-            type: unlockedOptions.types.includes(parsed.type) ? parsed.type : 'normal',
-            eyes: unlockedOptions.eyes.includes(parsed.eyes) ? parsed.eyes : 'default',
-            mouth: unlockedOptions.mouths.includes(parsed.mouth) ? parsed.mouth : 'default',
-            attack: unlockedOptions.attacks.includes(parsed.attack) ? parsed.attack : 'none'
-          };
-          console.log('savedAppearance', savedAppearance);
-          setAppearance(validAppearance);
-        } catch (e) {
-          console.error('Error parsing saved appearance', e);
-        }
-      }
-    }
-  }, []);  // Only run on initial mount, not when unlockedOptions changes
-  
+  }, [_evolutionLevel]);
   
   const setType = (type: BlobType) => {
     if (unlockedOptions.types.includes(type)) {
@@ -158,7 +135,11 @@ export function useBlobAppearance(evolutionLevel: number) {
       attack: 'none'
     });
   };
-  
+
+  const updateEvolutionLevel = (evolutionLevel: number) => {
+    setEvolutionLevel(evolutionLevel);
+  };
+
   return {
     appearance,
     unlockedOptions,
@@ -166,6 +147,8 @@ export function useBlobAppearance(evolutionLevel: number) {
     setEyes,
     setMouth,
     setAttack,
-    resetAppearance
+    resetAppearance,
+    setAppearance,
+    updateEvolutionLevel
   };
 } 

@@ -1,9 +1,8 @@
-
 import React from 'react';
 import StatusBar from './StatusBar';
 import EvolutionMeter from './EvolutionMeter';
 import { Heart, Droplet, Flame, Battery } from 'lucide-react';
-import { BlobStats } from '@/hooks/useBlobStats';
+import { BlobStats } from '@/store/slices/blobStatsSlice';
 
 interface StatsPanelProps {
   stats: Pick<BlobStats, 'hunger' | 'happiness' | 'hygiene' | 'energy' | 'evolutionLevel' | 'evolutionProgress'>;
