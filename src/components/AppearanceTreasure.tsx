@@ -45,7 +45,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'types' | 'eyes' | 'mouths' | 'attacks'>('types');
   const [phase, setPhase] = useState<BlobEvolutionPhase>('blob');
-  
+
   // Track the multi-attack state
   const [attackState, setAttackState] = useState<MultiAttackState>({
     selectedAttacks: appearance.attack !== 'none' ? [appearance.attack] : [],
@@ -64,11 +64,11 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
           attack: appearance.attack,
           selectedAttacks: attackState.selectedAttacks,
         };
-        
+
         // Save to localStorage
         localStorage.setItem('blobAppearance', JSON.stringify(completeAppearance));
         console.log('AppearanceTreasure saved appearance:', completeAppearance);
-        
+
         // Also save evolution level
         localStorage.setItem('evolutionLevel', evolutionLevel.toString());
         console.log('AppearanceTreasure saved evolution level:', evolutionLevel);
@@ -84,7 +84,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
     const map: Record<string, { icon: string; name: string; description: string }> = {
       'none': { icon: '❌', name: 'None', description: 'No attack selected' }
     };
-    
+
     // Add all attacks from the imported data
     attacks.forEach(attack => {
       map[attack.id] = {
@@ -93,24 +93,24 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
         description: attack.description
       };
     });
-    
+
     return map as Record<BlobAttack, { icon: string; name: string; description: string }>;
   }, []);
-  
+
   // Filter available attacks based on evolution level and blob type
   const availableAttacks = useMemo(() => {
     // Get attacks appropriate for the current evolution level
     const levelAttacks = getAttacksByEvolutionLevel(evolutionLevel);
-    
+
     // Include generic attacks plus type-specific attacks
     const typeSpecificAttacks = getAttacksByType(appearance.type);
-    
+
     // Combine and deduplicate
     const combined = [...levelAttacks, ...typeSpecificAttacks];
     const uniqueAttacks = Array.from(new Set(combined.map(a => a.id)))
       .map(id => combined.find(a => a.id === id)!)
       .map(a => a.id as BlobAttack);
-    
+
     // Always include 'none'
     return ['none', ...uniqueAttacks];
   }, [evolutionLevel, appearance.type]);
@@ -119,9 +119,9 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
     // Determine evolution phase based on level
     if (evolutionLevel <= 1) {
       setPhase('egg');
-    } else if (evolutionLevel <= 3) {
-      setPhase('blob');
     } else if (evolutionLevel <= 6) {
+      setPhase('blob');
+    } else if (evolutionLevel <= 10) {
       setPhase('baby');
     } else {
       setPhase('adult');
@@ -167,13 +167,13 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
       // If removing the primary attack, set a new primary
       const isPrimary = attackState.primaryAttack === attack;
       newSelectedAttacks = attackState.selectedAttacks.filter(a => a !== attack);
-      
+
       const newPrimary = newSelectedAttacks.length > 0 ? newSelectedAttacks[0] : 'none';
       setAttackState({
         selectedAttacks: newSelectedAttacks,
         primaryAttack: isPrimary ? newPrimary : attackState.primaryAttack
       });
-      
+
       // Update the primary attack in the appearance
       if (isPrimary) {
         onAttackChange(newPrimary);
@@ -182,21 +182,21 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
       // Add the attack (limit to 4 maximum)
       if (attackState.selectedAttacks.length < 4) {
         newSelectedAttacks = [...attackState.selectedAttacks, attack];
-        
+
         // If this is the first attack, make it primary
         const newPrimary = attackState.selectedAttacks.length === 0 ? attack : attackState.primaryAttack;
         setAttackState({
           selectedAttacks: newSelectedAttacks,
           primaryAttack: newPrimary
         });
-        
+
         // Update the primary attack in the appearance if needed
         if (attackState.selectedAttacks.length === 0) {
           onAttackChange(attack);
         }
       }
     }
-    
+
     if (settings.sound) {
       playSoundEffect('click');
     }
@@ -209,7 +209,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
         primaryAttack: attack
       });
       onAttackChange(attack);
-      
+
       if (settings.sound) {
         playSoundEffect('click');
       }
@@ -276,14 +276,14 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
   const getAttackComponent = (attackType: BlobAttack, position: string) => {
     const attack = getAttackById(attackType);
     if (!attack || attackType === 'none') return null;
-    
+
     // Common styling based on category
-    const commonStyles = attack.category === 'special' 
-      ? 'animate-pulse' 
-      : attack.category === 'physical' 
-        ? 'animate-bounce' 
+    const commonStyles = attack.category === 'special'
+      ? 'animate-pulse'
+      : attack.category === 'physical'
+        ? 'animate-bounce'
         : 'animate-spin';
-    
+
     // Default rendering based on type
     switch (attack.type) {
       case 'fire':
@@ -371,7 +371,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
     <>
       {/* Closed treasure chest */}
       {!isOpen && (
-        <div 
+        <div
           className="absolute bottom-4 right-4 w-12 h-10 cursor-pointer transition-transform hover:scale-110 active:scale-95 z-50"
           onClick={handleOpen}
         >
@@ -383,14 +383,14 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
           <div className="w-full h-6 bg-yellow-700 rounded-b-sm border-2 border-t-0 border-yellow-900 flex items-end justify-center">
             <div className="w-8 h-1 bg-yellow-900 mb-1 rounded-full"></div>
           </div>
-          
+
           {/* Indication that this is for appearance */}
           <div className="absolute -top-2 -right-2 w-5 h-5 bg-blob-tertiary rounded-full flex items-center justify-center text-white text-xs font-bold animate-pulse">
             ✨
           </div>
         </div>
       )}
-      
+
       {/* Open treasure chest with customization options */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -398,53 +398,53 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
             {/* Header */}
             <div className="p-3 border-b border-blob-tertiary flex justify-between items-center">
               <h3 className="text-white pixel-text text-lg">Blob Customization</h3>
-              <button 
+              <button
                 className="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center"
                 onClick={handleOpen}
               >
                 ×
               </button>
             </div>
-            
+
             {/* Evolution level indicator */}
             <div className="px-3 py-2 border-b border-blob-tertiary">
               <p className="text-white pixel-text text-sm">Evolution Level: {evolutionLevel}</p>
               <div className="w-full h-2 bg-gray-700 rounded-full mt-1">
-                <div 
-                  className="h-full bg-blob-happy rounded-full" 
+                <div
+                  className="h-full bg-blob-happy rounded-full"
                   style={{ width: `${Math.min(100, evolutionLevel / 10 * 100)}%` }}
                 ></div>
               </div>
             </div>
-            
+
             {/* Tabs for different customization types */}
             <div className="flex border-b border-blob-tertiary">
-              <button 
+              <button
                 className={`flex-1 p-2 pixel-text text-sm ${activeTab === 'types' ? 'bg-blob-tertiary text-white' : 'bg-transparent text-gray-400'}`}
                 onClick={() => handleTabChange('types')}
               >
                 Types
               </button>
-              <button 
+              <button
                 className={`flex-1 p-2 pixel-text text-sm ${activeTab === 'eyes' ? 'bg-blob-tertiary text-white' : 'bg-transparent text-gray-400'}`}
                 onClick={() => handleTabChange('eyes')}
               >
                 Eyes
               </button>
-              <button 
+              <button
                 className={`flex-1 p-2 pixel-text text-sm ${activeTab === 'mouths' ? 'bg-blob-tertiary text-white' : 'bg-transparent text-gray-400'}`}
                 onClick={() => handleTabChange('mouths')}
               >
                 Mouth
               </button>
-              <button 
+              <button
                 className={`flex-1 p-2 pixel-text text-sm ${activeTab === 'attacks' ? 'bg-blob-tertiary text-white' : 'bg-transparent text-gray-400'}`}
                 onClick={() => handleTabChange('attacks')}
               >
                 Attacks
               </button>
             </div>
-            
+
             {/* Content based on active tab */}
             <div className="p-4">
               {/* Preview based on evolution phase */}
@@ -455,14 +455,14 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                     <div className="w-20 h-24 relative animate-blob-idle">
                       {/* Egg shell */}
                       <div className="absolute bottom-0 w-16 h-20 bg-gradient-to-b from-gray-100 to-gray-200 rounded-t-full rounded-b-3xl left-1/2 transform -translate-x-1/2"></div>
-                      
+
                       {/* Cracks in egg */}
                       <div className="absolute bottom-8 left-1/2 w-1 h-5 bg-gray-50 transform -translate-x-3 rotate-45"></div>
                       <div className="absolute bottom-10 left-1/2 w-1 h-4 bg-gray-50 transform translate-x-4 -rotate-12"></div>
-                      
+
                       {/* Blob peeking from egg */}
                       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-8 h-6 rounded-t-full bg-blob-primary animate-pulse"></div>
-                      
+
                       {/* Eyes - only visible if not an egg or if hatching */}
                       <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex space-x-3">
                         <div className="w-1.5 h-2 bg-black rounded-full"></div>
@@ -475,13 +475,13 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                     <div className="relative">
                       {/* Multiple Attacks */}
                       {attackState.selectedAttacks.map((attack, index) => (
-                        attack !== 'none' && 
+                        attack !== 'none' &&
                         <React.Fragment key={attack}>
                           {getAttackComponent(attack, getAttackPosition(index))}
                         </React.Fragment>
                       ))}
-                      
-                      <div 
+
+                      <div
                         className={cn(
                           "w-20 h-20 rounded-full shadow-lg",
                           typeMap[appearance.type].bg,
@@ -494,12 +494,12 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                           <div className="absolute top-6 left-4 w-2 h-3">
                             {eyeMap[appearance.eyes]}
                           </div>
-                          
+
                           {/* Right eye */}
                           <div className="absolute top-6 right-4 w-2 h-3">
                             {eyeMap[appearance.eyes]}
                           </div>
-                          
+
                           {/* Mouth */}
                           <div className="absolute bottom-7 left-1/2 transform -translate-x-1/2 w-8 h-3">
                             {mouthMap[appearance.mouth]}
@@ -513,14 +513,14 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                     <div className="relative">
                       {/* Multiple Attacks */}
                       {attackState.selectedAttacks.map((attack, index) => (
-                        attack !== 'none' && 
+                        attack !== 'none' &&
                         <React.Fragment key={attack}>
                           {getAttackComponent(attack, getAttackPosition(index))}
                         </React.Fragment>
                       ))}
-                      
+
                       {/* Body - slightly larger with stubby limbs */}
-                      <div 
+                      <div
                         className={cn(
                           "w-24 h-24 rounded-full shadow-lg relative",
                           typeMap[appearance.type].bg,
@@ -529,40 +529,34 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                       >
                         {/* Left arm - stubby */}
                         <div className={cn("absolute -left-2 top-10 w-4 h-6 rounded-full", typeMap[appearance.type].bg)}></div>
-                        
+
                         {/* Right arm - stubby */}
                         <div className={cn("absolute -right-2 top-10 w-4 h-6 rounded-full", typeMap[appearance.type].bg)}></div>
-                        
+
                         {/* Left leg - stubby */}
                         <div className={cn("absolute left-5 -bottom-2 w-6 h-4 rounded-full", typeMap[appearance.type].bg)}></div>
-                        
+
                         {/* Right leg - stubby */}
                         <div className={cn("absolute right-5 -bottom-2 w-6 h-4 rounded-full", typeMap[appearance.type].bg)}></div>
-                        
+
                         {/* Face */}
                         <div className="relative w-full h-full">
                           {/* Left eye - slightly larger */}
                           <div className="absolute top-7 left-7 w-3 h-3">
                             {eyeMap[appearance.eyes]}
                           </div>
-                          
+
                           {/* Right eye - slightly larger */}
                           <div className="absolute top-7 right-7 w-3 h-3">
                             {eyeMap[appearance.eyes]}
                           </div>
-                          
+
                           {/* Mouth */}
                           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-8 h-3">
                             {mouthMap[appearance.mouth]}
                           </div>
                         </div>
-                        
-                        {/* Baby onesie pattern */}
-                        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-10 h-5">
-                          <div className="absolute top-0 left-0 w-2 h-2 bg-yellow-400 rounded-full"></div>
-                          <div className="absolute top-3 left-4 w-2 h-2 bg-blue-400 rounded-full"></div>
-                          <div className="absolute top-1 left-8 w-2 h-2 bg-green-400 rounded-full"></div>
-                        </div>
+
                       </div>
                     </div>
                   )}
@@ -570,7 +564,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                   {phase === 'adult' && (
                     <div className="relative scale-75">
                       {/* Body - full humanoid but still blob-like */}
-                      <div 
+                      <div
                         className={cn(
                           "w-28 h-32 rounded-2xl shadow-lg relative",
                           typeMap[appearance.type].bg,
@@ -581,49 +575,49 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                         <div className={cn("absolute left-1/2 transform -translate-x-1/2 -top-12 w-20 h-20 rounded-full", typeMap[appearance.type].bg)}>
                           {/* Multiple Attacks */}
                           {attackState.selectedAttacks.map((attack, index) => (
-                            attack !== 'none' && 
+                            attack !== 'none' &&
                             <React.Fragment key={attack}>
                               {getAttackComponent(attack, getAttackPosition(index))}
                             </React.Fragment>
                           ))}
-                          
+
                           {/* Face */}
                           <div className="relative w-full h-full">
                             {/* Left eye */}
                             <div className="absolute top-8 left-5 w-3 h-3">
                               {eyeMap[appearance.eyes]}
                             </div>
-                            
+
                             {/* Right eye */}
                             <div className="absolute top-8 right-5 w-3 h-3">
                               {eyeMap[appearance.eyes]}
                             </div>
-                            
+
                             {/* Mouth */}
                             <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 w-10 h-3">
                               {mouthMap[appearance.mouth]}
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* Left arm */}
                         <div className={cn("absolute -left-4 top-5 w-6 h-20 rounded-full", typeMap[appearance.type].bg)}>
                           {/* Hand */}
                           <div className={cn("absolute bottom-0 left-0 w-8 h-8 rounded-full", typeMap[appearance.type].bg)}></div>
                         </div>
-                        
+
                         {/* Right arm */}
                         <div className={cn("absolute -right-4 top-5 w-6 h-20 rounded-full", typeMap[appearance.type].bg)}>
                           {/* Hand */}
                           <div className={cn("absolute bottom-0 right-0 w-8 h-8 rounded-full", typeMap[appearance.type].bg)}></div>
                         </div>
-                        
+
                         {/* Left leg */}
                         <div className={cn("absolute left-5 -bottom-8 w-6 h-10 rounded-full", typeMap[appearance.type].bg)}></div>
-                        
+
                         {/* Right leg */}
                         <div className={cn("absolute right-5 -bottom-8 w-6 h-10 rounded-full", typeMap[appearance.type].bg)}></div>
-                        
+
                         {/* Outfit - book for the intellectual adult blob */}
                         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-16 h-10 bg-blue-100 border border-blue-700"></div>
                       </div>
@@ -631,7 +625,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                   )}
                 </div>
               </div>
-              
+
               {/* Types Tab */}
               {activeTab === 'types' && (
                 <div>
@@ -659,7 +653,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                   </div>
                 </div>
               )}
-              
+
               {/* Eyes Tab */}
               {activeTab === 'eyes' && (
                 <div>
@@ -689,7 +683,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                   </div>
                 </div>
               )}
-              
+
               {/* Mouths Tab */}
               {activeTab === 'mouths' && (
                 <div>
@@ -719,7 +713,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                   </div>
                 </div>
               )}
-              
+
               {/* Attacks Tab Content */}
               {activeTab === 'attacks' && (
                 <div>
@@ -730,8 +724,8 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                     ) : (
                       <div className="flex flex-wrap gap-1">
                         {attackState.selectedAttacks.map(attack => (
-                          <div 
-                            key={attack} 
+                          <div
+                            key={attack}
                             className={`px-2 py-1 rounded-full text-xs flex items-center ${attack === attackState.primaryAttack ? 'bg-blob-tertiary' : 'bg-gray-700'}`}
                             onClick={() => setPrimaryAttack(attack)}
                           >
@@ -743,7 +737,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="grid grid-cols-1 gap-2">
                     <button
                       className={`w-full p-2 bg-gray-700 rounded-lg flex items-center`}
@@ -756,14 +750,14 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                         <div className="text-white font-semibold">Clear All Attacks</div>
                       </div>
                     </button>
-                  
+
                     {availableAttacks.filter(a => a !== 'none' && unlockedOptions.attacks.includes(a as BlobAttack)).map((attack) => {
                       const attackData = attackMap[attack];
                       if (!attackData) return null;
-                      
+
                       // Cast attack to BlobAttack type for type safety
                       const attackId = attack as BlobAttack;
-                      
+
                       return (
                         <button
                           key={attack}
@@ -791,7 +785,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                         </button>
                       );
                     })}
-                    
+
                     {evolutionLevel < 7 && (
                       <div className="w-full p-2 bg-gray-700 rounded-lg flex items-center text-gray-400">
                         <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-xl mr-3">
@@ -806,7 +800,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                   </div>
                 </div>
               )}
-              
+
               {/* Reset button */}
               <div className="mt-4 flex justify-center">
                 <button

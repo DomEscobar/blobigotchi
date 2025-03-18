@@ -23,9 +23,9 @@ const Blob: React.FC<BlobProps> = ({ mood, onClick, className, evolutionLevel = 
     // Determine evolution phase based on level
     if (evolutionLevel <= 1) {
       setPhase('egg');
-    } else if (evolutionLevel <= 3) {
-      setPhase('blob');
     } else if (evolutionLevel <= 6) {
+      setPhase('blob');
+    } else if (evolutionLevel <= 10) {
       setPhase('baby');
     } else {
       setPhase('adult');

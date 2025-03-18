@@ -145,7 +145,7 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
             />
           )}
 
-          {evolutionLevel >= 2 && evolutionLevel <= 3 && (
+          {evolutionLevel >= 2 && evolutionLevel <= 10 && (
             <>
               {/* Basic environment for blob phase */}
               <div
@@ -196,11 +196,11 @@ const Habitat: React.FC<HabitatProps> = ({ mood, onBlobClick, className = '', ev
             </>
           )}
 
-          {evolutionLevel >= 4 && evolutionLevel <= 6 && (
+          {evolutionLevel >= 6 && evolutionLevel <= 10 && (
             <BabyRoom onInteraction={handleToyInteraction} />
           )}
 
-          {evolutionLevel >= 7 && (
+          {evolutionLevel >= 11 && (
             <AdultRoom onInteraction={handleToyInteraction} mood={mood} />
           )}
 
