@@ -39,9 +39,7 @@ interface MatchmakingEntry {
 }
 
 // Server URL - should be configured based on environment
-const SERVER_URL = process.env.NODE_ENV === 'production' 
-  ? 'wss://your-production-server.com' 
-  : 'ws://localhost:3001';
+const SERVER_URL = 'https://plot-production-b63b.up.railway.app'
 
 // Create a function to generate a stable userId that won't change on re-renders
 function generateUserId() {

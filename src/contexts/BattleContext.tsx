@@ -46,9 +46,7 @@ interface BattleState {
 }
 
 // Server URL - should be configured based on environment
-const SERVER_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-production-server.com' 
-  : 'http://localhost:3001';
+const SERVER_URL = 'https://plot-production-b63b.up.railway.app';
 
 // Generate stable user ID
 function generateUserId() {

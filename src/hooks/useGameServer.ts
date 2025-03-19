@@ -26,7 +26,7 @@ export interface MatchmakingEntry {
 }
 
 // WebSocket connection
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+const WS_URL = import.meta.env.VITE_WS_URL || 'wss://websocket-server-production-5380.up.railway.app';
 let ws: WebSocket | null = null;
 
 /**
