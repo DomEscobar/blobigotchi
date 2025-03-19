@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 // Types for appearance customization
-export type BlobType = 'normal' | 'fire' | 'water' | 'electric' | 'grass' | 'ice' | 'fighting' | 'poison' | 'ground' | 'rock' | 'psychic' | 'ghost';
-export type BlobEyes = 'default' | 'round' | 'oval' | 'star' | 'heart' | 'square';
-export type BlobMouth = 'default' | 'wide' | 'small' | 'kawaii' | 'surprised' | 'cool';
+export type BlobType = 'normal' | 'fire' | 'water' | 'electric' | 'grass' | 'ice' | 'fighting' | 'psychic';
+export type BlobEyes = 'default' | 'round' | 'oval' | 'star' | 'heart' | 'square' | 'sleepy' | 'angry' | 'cute' | 'pixel' | 'dizzy';
+export type BlobMouth = 'default' | 'wide' | 'small' | 'kawaii' | 'surprised' | 'cool' | 'wide' | 'smirk' | 'sad' | 'tongue' | 'pixel' | 'pixel';
 export type BlobAttack = 'none' | 'fireball' | 'watergun' | 'thunderbolt' | 'rockthrow' | 'leafblade' | 'psychicwave' | 'shadowball' | 'icebeam' |
   'flamethrower' | 'fire_spin' | 'hydro_pump' | 'aqua_jet' | 'thunder_shock' | 'volt_tackle' | 'solar_beam' | 'seed_bomb' | 'blizzard' | 'ice_shard' |
   'dynamic_punch' | 'close_combat' | 'pixel_punch' | 'sludge_bomb' | 'toxic' | 'acid_spray' | 'earthquake' | 'sandstorm' | 'future_sight' | 
@@ -102,45 +102,47 @@ export const blobAppearanceSlice = createSlice({
       // Level 2: Unlock basic types
       if (evolutionLevel >= 2) {
         newUnlocks.types.push('fire', 'water');
+        newUnlocks.eyes.push('round', 'sleepy');
+        newUnlocks.mouths.push('wide', 'smirk');
       }
       
       // Level 3: Unlock more types and basic eyes
       if (evolutionLevel >= 3) {
         newUnlocks.types.push('grass');
-        newUnlocks.eyes.push('round');
-        newUnlocks.mouths.push('wide');
+        newUnlocks.eyes.push('oval', 'angry');
+        newUnlocks.mouths.push('small', 'sad');
         newUnlocks.attacks.push('fireball');
       }
       
       // Level 4: Unlock even more customizations
       if (evolutionLevel >= 4) {
         newUnlocks.types.push('electric');
-        newUnlocks.eyes.push('oval');
+        newUnlocks.eyes.push('oval', 'cute');
         newUnlocks.mouths.push('small');
         newUnlocks.attacks.push('watergun', 'thunderbolt');
       }
       
       // Level 5: More unlocks
       if (evolutionLevel >= 5) {
-        newUnlocks.types.push('rock', 'ice');
-        newUnlocks.eyes.push('star');
-        newUnlocks.mouths.push('kawaii');
+        newUnlocks.types.push('ice');
+        newUnlocks.eyes.push('star', 'heart');
+        newUnlocks.mouths.push('kawaii', 'surprised');
         newUnlocks.attacks.push('rockthrow', 'leafblade');
       }
       
       // Level 6: Unlocking more options
       if (evolutionLevel >= 6) {
-        newUnlocks.types.push('fighting', 'poison');
-        newUnlocks.eyes.push('heart');
-        newUnlocks.mouths.push('surprised');
+        newUnlocks.types.push('fighting');
+        newUnlocks.eyes.push('square', 'dizzy');
+        newUnlocks.mouths.push('cool', 'pixel');
         newUnlocks.attacks.push('psychicwave');
       }
       
       // Level 7+: Final unlocks
       if (evolutionLevel >= 7) {
-        newUnlocks.types.push('ground', 'psychic', 'ghost');
-        newUnlocks.eyes.push('square');
-        newUnlocks.mouths.push('cool');
+        newUnlocks.types.push('psychic');
+        newUnlocks.eyes.push('square', 'pixel');
+        newUnlocks.mouths.push('pixel');
         newUnlocks.attacks.push('shadowball', 'icebeam');
       }
       

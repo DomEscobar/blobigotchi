@@ -418,9 +418,9 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const initialHP = 100;
     
     // Generate a complete random opponent appearance
-    const blobTypes = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'rock', 'psychic', 'ghost'];
-    const eyeTypes = ['default', 'round', 'oval', 'star', 'heart', 'square'];
-    const mouthTypes = ['default', 'wide', 'small', 'kawaii', 'surprised', 'cool'];
+    const blobTypes = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'psychic'];
+    const eyeTypes = ['default', 'round', 'oval', 'star', 'heart', 'square', 'sleepy', 'angry', 'cute', 'pixel'];
+    const mouthTypes = ['default', 'wide', 'small', 'kawaii', 'surprised', 'cool', 'wide', 'smirk', 'sad', 'tongue', 'pixel'];
     
     const randomOpponentType = blobTypes[Math.floor(Math.random() * blobTypes.length)];
     const randomOpponentEyes = eyeTypes[Math.floor(Math.random() * eyeTypes.length)];
