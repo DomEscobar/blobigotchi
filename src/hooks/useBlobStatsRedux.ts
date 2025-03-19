@@ -138,20 +138,44 @@ export function useBlobStatsRedux() {
         if (savedAppearance) {
           const parsedAppearance = JSON.parse(savedAppearance);
           
-          // Update the attack
-          const updatedAppearance = {
-            ...parsedAppearance,
-            attack: attackId as BlobAttack
-          };
+          // Get current attacks array or initialize it if it doesn't exist
+          const currentAttacks = parsedAppearance.attacks || [parsedAppearance.attack || 'none'];
           
-          // Save back to localStorage
-          localStorage.setItem('blobAppearance', JSON.stringify(updatedAppearance));
-          
-          // Track the current evolution level with attack choice in localStorage
-          localStorage.setItem(`attackChoiceLevel_${stats.lastAttackOfferLevel}`, attackId);
-          
-          // Show confirmation message
-          showActionFeedback(`Your blob learned ${attackId}!`, '⚔️', true);
+          // Add the new attack (but don't add duplicates)
+          if (!currentAttacks.includes(attackId)) {
+            // Create a new array with the new attack
+            let updatedAttacks = [...currentAttacks, attackId];
+            
+            // If we have more than 4 attacks, remove the oldest one
+            if (updatedAttacks.length > 4) {
+              updatedAttacks = updatedAttacks.slice(1);
+            }
+            
+            // Update the appearance with the new attacks array and maintain the most recent as the single attack
+            // for backward compatibility
+            const updatedAppearance = {
+              ...parsedAppearance,
+              attack: attackId as BlobAttack, // Keep the most recent for backward compatibility
+              attacks: updatedAttacks as BlobAttack[]
+            };
+            
+            // Save back to localStorage
+            localStorage.setItem('blobAppearance', JSON.stringify(updatedAppearance));
+            
+            // Track the current evolution level with attack choice in localStorage
+            localStorage.setItem(`attackChoiceLevel_${stats.lastAttackOfferLevel}`, attackId);
+            
+            // Show confirmation message - indicate if an attack was forgotten
+            if (updatedAttacks.length === 4 && currentAttacks.length === 4) {
+              const forgottenAttack = currentAttacks[0];
+              showActionFeedback(`Your blob forgot ${forgottenAttack} and learned ${attackId}!`, '⚔️', true);
+            } else {
+              showActionFeedback(`Your blob learned ${attackId}!`, '⚔️', true);
+            }
+          } else {
+            // Attack already known
+            showActionFeedback(`Your blob already knows ${attackId}!`, '⚔️', false);
+          }
         }
       } catch (error) {
         console.error('Error updating attack:', error);
@@ -255,15 +279,38 @@ export function useBlobStatsRedux() {
     }
   };
 
+  // New debug function to directly trigger attack offer
+  const devTriggerAttackOffer = () => {
+    console.log('Manually triggering attack offer');
+    dispatch(resetAttackOfferFlag()); // Reset first to ensure clean state
+    dispatch({ type: 'blobStats/setShowAttackOffer', payload: true });
+    showActionFeedback('DEV MODE: Forcing attack offer modal', '🔧🛠️', true);
+  };
+
   // Check for pending attack offers on initialization
   useEffect(() => {
+    // Debug information
+    console.log('Attack offer debug:', {
+      showAttackOffer: stats.showAttackOffer,
+      lastAttackOfferLevel: stats.lastAttackOfferLevel,
+      evolutionLevel: stats.evolutionLevel,
+      blobType: appearance.type
+    });
+    
     // If we have attack offers to show and one isn't showing yet
     if (!stats.showAttackOffer && stats.lastAttackOfferLevel < stats.evolutionLevel) {
+      console.log('Triggering attack offer update');
       // We have pending attack offers, trigger the first one
-      dispatch(resetAttackOfferFlag()); // Reset first to ensure clean state
       dispatch(updateLastAttackOfferLevel()); // This will increment and set showAttackOffer
     }
-  }, [stats.lastAttackOfferLevel, stats.evolutionLevel, stats.showAttackOffer, dispatch]);
+  }, [stats.lastAttackOfferLevel, stats.evolutionLevel, stats.showAttackOffer, dispatch, appearance.type]);
+
+  // Also add debug log for the actual returned values
+  console.log('Component return values:', {
+    showAttackOfferModal: stats.showAttackOffer,
+    blobType: appearance.type,
+    evolutionLevel: stats.lastAttackOfferLevel
+  });
 
   return {
     stats,
@@ -287,7 +334,8 @@ export function useBlobStatsRedux() {
       restBlob: handleBlobRest,
       handleBlobClick: handleBlobInteraction,
       showActionFeedback,
-      handleDevAction
+      handleDevAction,
+      devTriggerAttackOffer
     }
   };
 } 

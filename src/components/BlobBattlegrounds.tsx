@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import BattleArena from './BattleArena';
 import { useBattle, BattleProvider } from '@/contexts/BattleContext';
 import { useSettings } from '@/hooks/useSettings';
-import { MessageType } from '@/contexts/BattleContext';
 import { useBlobAppearance } from '@/hooks/useBlobAppearance';
 
 interface BlobBattlegroundsProps {
@@ -39,6 +38,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
   const [battleCode, setBattleCode] = useState('');
   const [battleView, setBattleView] = useState<BattleView>('menu');
   const [isDebugPanelOpen, setIsDebugPanelOpen] = useState(false);
+  const [isNPCBattle, setIsNPCBattle] = useState(false);
 
   // Use refs to track the previous state for debugging
   const prevConnectionStatusRef = useRef<string | null>(null);
@@ -55,7 +55,8 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
     startMatchmaking,
     disconnect,
     battleState,
-    serverMessages
+    serverMessages,
+    startSimulatedBattle
   } = useBattle();
 
   const { settings } = useSettings();
@@ -113,6 +114,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
 
   // Handle creating a new battle invite
   const handleCreateBattle = async () => {
+    setIsNPCBattle(false);
     setBattleView('lobby');
     await createBattleInvite();
     toast.success(`Battle invite created`);
@@ -149,6 +151,14 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
 
   const handleBattleLoss = () => {
     console.log('Battle lost');
+  };
+
+  // Handle starting a battle with an NPC bot
+  const handleBattleNPC = () => {
+    setIsNPCBattle(true);
+    setBattleView('lobby');
+    startSimulatedBattle();
+    toast.success(`Started battle with NPC bot`);
   };
 
   // Render battle view if in battle
@@ -222,57 +232,65 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
               </div>
             ) : (
               <>
-                <p className="text-white pixel-text mb-4">Waiting for opponent to join...</p>
+                <p className="text-white pixel-text mb-4">
+                  {isNPCBattle 
+                    ? "Preparing NPC battle..."
+                    : "Waiting for opponent to join..."}
+                </p>
 
-                {/* Battle code display */}
-                <div className="bg-gray-900 rounded border border-gray-800 p-3 flex items-center justify-between mb-4">
-                  <span className="text-blob-primary pixel-text overflow-hidden text-ellipsis">
-                    {(() => {
-                      // Find the battle code message in server messages
-                      const codeMsg = serverMessages?.find(msg =>
-                        msg.type === 'battleCode' || (msg.type === 'system' && msg.data?.includes('code'))
-                      );
+                {/* Battle code display - only show for non-NPC battles */}
+                {!isNPCBattle && (
+                  <>
+                    <div className="bg-gray-900 rounded border border-gray-800 p-3 flex items-center justify-between mb-4">
+                      <span className="text-blob-primary pixel-text overflow-hidden text-ellipsis">
+                        {(() => {
+                          // Find the battle code message in server messages
+                          const codeMsg = serverMessages?.find(msg =>
+                            msg.type === 'battleCode' || (msg.type === 'system' && msg.data?.includes('code'))
+                          );
 
-                      if (codeMsg) {
-                        if (codeMsg.type === 'battleCode') {
-                          return codeMsg.data;
-                        } else {
-                          // Extract code from system message
-                          const match = codeMsg.data.match(/code: ([A-Z0-9]+)/i);
-                          return match ? match[1] : 'Generating code...';
-                        }
-                      }
+                          if (codeMsg) {
+                            if (codeMsg.type === 'battleCode') {
+                              return codeMsg.data;
+                            } else {
+                              // Extract code from system message
+                              const match = codeMsg.data.match(/code: ([A-Z0-9]+)/i);
+                              return match ? match[1] : 'Generating code...';
+                            }
+                          }
 
-                      return 'Generating code...';
-                    })()}
-                  </span>
-                  <button
-                    onClick={() => {
-                      const codeMsg = serverMessages?.find(msg =>
-                        msg.type === 'battleCode' || (msg.type === 'system' && msg.data?.includes('code'))
-                      );
+                          return 'Generating code...';
+                        })()}
+                      </span>
+                      <button
+                        onClick={() => {
+                          const codeMsg = serverMessages?.find(msg =>
+                            msg.type === 'battleCode' || (msg.type === 'system' && msg.data?.includes('code'))
+                          );
 
-                      if (codeMsg) {
-                        if (codeMsg.type === 'battleCode') {
-                          handleCopyCode(codeMsg.data);
-                        } else {
-                          const match = codeMsg.data.match(/code: ([A-Z0-9]+)/i);
-                          if (match) handleCopyCode(match[1]);
-                        }
-                      }
-                    }}
-                    className="ml-2 p-1 hover:bg-gray-800 rounded"
-                  >
-                    <Copy size={16} className="text-gray-400" />
-                  </button>
-                </div>
+                          if (codeMsg) {
+                            if (codeMsg.type === 'battleCode') {
+                              handleCopyCode(codeMsg.data);
+                            } else {
+                              const match = codeMsg.data.match(/code: ([A-Z0-9]+)/i);
+                              if (match) handleCopyCode(match[1]);
+                            }
+                          }
+                        }}
+                        className="ml-2 p-1 hover:bg-gray-800 rounded"
+                      >
+                        <Copy size={16} className="text-gray-400" />
+                      </button>
+                    </div>
 
-                <div className="flex items-center justify-center text-sm mb-4">
-                  <Info size={14} className="text-blob-tertiary mr-2" />
-                  <p className="text-gray-400 pixel-text">
-                    Share this code with a friend to battle
-                  </p>
-                </div>
+                    <div className="flex items-center justify-center text-sm mb-4">
+                      <Info size={14} className="text-blob-tertiary mr-2" />
+                      <p className="text-gray-400 pixel-text">
+                        Share this code with a friend to battle
+                      </p>
+                    </div>
+                  </>
+                )}
               </>
             )}
 
@@ -358,6 +376,12 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
                 Create Battle
               </Button>
               <Button
+                onClick={handleBattleNPC}
+                className="bg-purple-800 hover:bg-purple-700 text-white text-xs"
+              >
+                NPC Battle
+              </Button>
+              <Button
                 onClick={() => {
                   // Access the WebSocket ref safely
                   const webSocketRef = (window as any).wsRef;
@@ -367,7 +391,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
                     toast.error("WebSocket is not connected", { className: "pixel-text" });
                   }
                 }}
-                className="bg-purple-800 hover:bg-purple-700 text-white text-xs"
+                className="bg-cyan-800 hover:bg-cyan-700 text-white text-xs"
               >
                 Check WebSocket
               </Button>
@@ -456,12 +480,12 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
           </Button>
 
           <div className="bg-black/50 p-4 rounded-lg border border-gray-800">
-            <h3 className="text-white pixel-text mb-2">Create Private Battle</h3>
+            <h3 className="text-white pixel-text mb-2">Battle NPC Bot</h3>
             <Button
-              onClick={handleCreateBattle}
+              onClick={handleBattleNPC}
               className="w-full bg-blob-secondary hover:bg-blob-secondary/90 text-white"
             >
-              <span className="pixel-text">Create Battle Invite</span>
+              <span className="pixel-text">Start NPC Battle</span>
             </Button>
           </div>
 

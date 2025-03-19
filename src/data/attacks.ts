@@ -428,6 +428,18 @@ const attacks: Attack[] = [
   
   // Normal type attacks
   {
+    id: "tackle",
+    name: "Tackle",
+    type: "normal",
+    category: "physical",
+    basePower: 30,
+    accuracy: 100,
+    description: "A basic tackling attack",
+    icon: "👊",
+    animation: "animate-tackle",
+    minLevel: 1
+  },
+  {
     id: "blob_beam",
     name: "Blob Beam",
     type: "normal",

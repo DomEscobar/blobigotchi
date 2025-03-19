@@ -27,15 +27,71 @@ const AttackOfferModal: React.FC<AttackOfferModalProps> = ({
   // Get attacks appropriate for the blob's type
   const typeAttacks = getAttacksByType(blobType);
   
+  // Debug log for attack availability
+  console.log('AttackOfferModal debug:', {
+    blobType,
+    evolutionLevel,
+    typeAttacks: typeAttacks.length,
+    typeAttacksList: typeAttacks.map(a => `${a.id} (min:${a.minLevel})`)
+  });
+  
   // Filter attacks to only include those appropriate for the current evolution level
   const availableAttacks = typeAttacks.filter(attack => attack.minLevel <= evolutionLevel);
+  
+  console.log('Available attacks:', {
+    count: availableAttacks.length,
+    attacksList: availableAttacks.map(a => a.id),
+    hasAttacks: availableAttacks.length > 0
+  });
   
   // Select a random attack from the available ones
   const randomAttack = availableAttacks.length > 0 
     ? availableAttacks[Math.floor(Math.random() * availableAttacks.length)]
     : null;
   
-  if (!isOpen || !randomAttack) return null;
+  // If not open, don't render at all
+  if (!isOpen) return null;
+  
+  // If no attacks are available but modal should be open, show a fallback message
+  if (!randomAttack) {
+    return (
+      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div className="bg-crt-background rounded-lg border-2 border-blob-tertiary shadow-lg w-96 max-w-full max-h-[90vh] overflow-auto">
+          <div className="p-3 border-b border-blob-tertiary flex justify-between items-center">
+            <h3 className="text-white pixel-text text-lg">Level {evolutionLevel} Update</h3>
+            <button
+              className="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center"
+              onClick={onDecline}
+            >
+              ×
+            </button>
+          </div>
+          
+          <div className="p-4">
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 bg-gray-800 rounded-full mx-auto flex items-center justify-center text-4xl mb-3">
+                ❓
+              </div>
+              <h2 className="text-xl text-white font-bold mb-1">No Attacks Available</h2>
+              <p className="text-gray-300 text-sm">
+                There are no attacks available for your '{blobType}' blob at level {evolutionLevel}. 
+                Try leveling up more or changing your blob type in the settings!
+              </p>
+            </div>
+            
+            <div className="flex justify-center mt-6">
+              <button
+                className="px-4 py-2 bg-blob-tertiary rounded text-white pixel-text hover:bg-blob-secondary transition-colors"
+                onClick={onDecline}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   const handleAccept = () => {
     if (settings.sound) {

@@ -15,6 +15,7 @@ export interface BlobAppearance {
   eyes: BlobEyes;
   mouth: BlobMouth;
   attack: BlobAttack;
+  attacks: BlobAttack[];
 }
 
 interface AppearanceUnlocks {
@@ -33,7 +34,8 @@ export function useBlobAppearance(_evolutionLevel: number) {
     type: 'normal',
     eyes: 'default',
     mouth: 'default',
-    attack: 'none'
+    attack: 'none',
+    attacks: ['none']
   });
   
   // Track unlocked appearance options
@@ -132,7 +134,8 @@ export function useBlobAppearance(_evolutionLevel: number) {
       type: 'normal',
       eyes: 'default',
       mouth: 'default',
-      attack: 'none'
+      attack: 'none',
+      attacks: ['none']
     });
   };
 

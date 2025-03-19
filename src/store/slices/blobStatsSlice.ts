@@ -67,6 +67,9 @@ export const blobStatsSlice = createSlice({
     setMood: (state, action: PayloadAction<BlobMood>) => {
       state.mood = action.payload;
     },
+    setShowAttackOffer: (state, action: PayloadAction<boolean>) => {
+      state.showAttackOffer = action.payload;
+    },
     increaseActionCounter: (state) => {
       state.actionCounter += 1;
     },
@@ -144,11 +147,8 @@ export const blobStatsSlice = createSlice({
     },
     updateLastAttackOfferLevel: (state) => {
       if (state.lastAttackOfferLevel < state.evolutionLevel) {
+        state.showAttackOffer = true;
         state.lastAttackOfferLevel += 1;
-        
-        if (state.lastAttackOfferLevel < state.evolutionLevel) {
-          state.showAttackOffer = true;
-        }
       }
     },
     feedBlob: (state) => {
@@ -228,8 +228,8 @@ export const blobStatsSlice = createSlice({
 
 export const { 
   setHunger, setHappiness, setHygiene, setEnergy, 
-  setEvolutionLevel, setEvolutionProgress, setMood, 
-  increaseActionCounter, setLastAction, decreaseStats,
+  setEvolutionLevel, setEvolutionProgress, setMood,
+  setShowAttackOffer, increaseActionCounter, setLastAction, decreaseStats,
   feedBlob, playWithBlob, cleanBlob, restBlob, 
   handleBlobClick, increaseEvolution, devLevelUp,
   checkEvolution, resetEvolutionFlags, resetAttackOfferFlag,

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Shield, Swords } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useBattle } from '@/contexts/BattleContext';
 import Blob from '@/components/Blob';
@@ -420,11 +419,6 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
     disconnect
   } = useBattle();
 
-  // Filter out 'none' and get available attacks
-  const availableAttacks = appearance.attack !== 'none' 
-    ? [appearance.attack]
-    : [] as BlobAttack[];
-  
   // Get any additional attacks from a multi-attack system
   const getSelectedAttacks = (): BlobAttack[] => {
     // First check if we have access to localStorage for stored attacks
@@ -433,8 +427,8 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
         const savedAppearance = localStorage.getItem('blobAppearance');
         if (savedAppearance) {
           const parsed = JSON.parse(savedAppearance);
-          if (parsed.selectedAttacks && Array.isArray(parsed.selectedAttacks) && parsed.selectedAttacks.length > 0) {
-            return parsed.selectedAttacks
+          if (parsed.attacks && Array.isArray(parsed.attacks) && parsed.attacks.length > 0) {
+            return parsed.attacks
               .filter((a: string) => a !== 'none')
               .map((id: string) => id as BlobAttack);
           }
@@ -447,11 +441,13 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
     // If no attacks found in localStorage, return the single attack if it exists
     return appearance.attack !== 'none' ? [appearance.attack] : [];
   };
+
+  // Get available attacks from the appearance or localStorage
+  const availableAttacks = getSelectedAttacks();
   
   // Use the selected attacks or fallback to default attacks
-  const selectedAttacks = getSelectedAttacks();
-  const attacksToUse = selectedAttacks.length > 0 
-    ? selectedAttacks
+  const selectedAttacks = availableAttacks.length > 0 
+    ? availableAttacks
     : ['quick_attack'] as BlobAttack[];
   
   // Setup keyboard shortcuts
@@ -463,10 +459,10 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
       if (['1', '2', '3', '4'].includes(key) && !showEndScreen && battleState?.turn === 'player') {
         const moveIndex = parseInt(key) - 1;
         
-        if (moveIndex >= 0 && moveIndex < attacksToUse.length) {
-          const attack = getAttackById(attacksToUse[moveIndex]);
+        if (moveIndex >= 0 && moveIndex < selectedAttacks.length) {
+          const attack = getAttackById(selectedAttacks[moveIndex]);
           if (attack) {
-            handleMoveClick(attacksToUse[moveIndex]);
+            handleMoveClick(selectedAttacks[moveIndex]);
           }
         }
       }
@@ -482,7 +478,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [battleState, showEndScreen, attacksToUse]);
+  }, [battleState, showEndScreen, selectedAttacks]);
   
   // Show end screen when battle is over
   useEffect(() => {
@@ -566,7 +562,8 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
         type: opponentAppearance.type || 'normal',
         eyes: opponentAppearance.eyes || 'default',
         mouth: opponentAppearance.mouth || 'default',
-        attack: opponentAppearance.attack as BlobAttack || 'none'
+        attack: opponentAppearance.attack as BlobAttack || 'none',
+        attacks: opponentAppearance.attacks || ['none']
       };
     }
     
@@ -578,7 +575,8 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
       type: (battleState?.opponentType as BlobType) || randomType,
       eyes: 'default',
       mouth: 'default',
-      attack: 'none'
+      attack: 'none',
+      attacks: ['none']
     };
   };
   
@@ -600,7 +598,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
       <BattleCharacter 
         name={opponentName || 'Opponent'} 
         hp={battleState?.opponentHP || 0} 
-        maxHp={100} 
+        maxHp={80 + (opponentEvolutionLevel || 1) * 20} 
         appearance={getOpponentAppearance()} 
         evolutionLevel={opponentEvolutionLevel || 1}
         isOpponent={true}
@@ -615,7 +613,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
       <BattleCharacter 
         name="Your Blob" 
         hp={battleState?.playerHP || 0} 
-        maxHp={100} 
+        maxHp={80 + evolutionLevel * 20} 
         appearance={appearance} 
         evolutionLevel={evolutionLevel}
         isOpponent={false}
@@ -625,7 +623,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
       
       {/* Moves section */}
       <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-6">
-        {attacksToUse.map((attackId, index) => (
+        {selectedAttacks.map((attackId, index) => (
           <BattleAttackButton 
             key={attackId}
             attackId={attackId}
@@ -638,7 +636,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
         ))}
         
         {/* Fill empty slots if we have fewer than 4 attacks */}
-        {Array.from({ length: Math.max(0, 4 - attacksToUse.length) }).map((_, index) => (
+        {Array.from({ length: Math.max(0, 4 - selectedAttacks.length) }).map((_, index) => (
           <div 
             key={`empty-${index}`}
             className="pixel-button h-16 sm:h-24 p-0 overflow-hidden relative bg-gray-900/20 border-gray-800/50 opacity-30"
