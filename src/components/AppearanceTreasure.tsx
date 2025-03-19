@@ -23,12 +23,6 @@ interface AppearanceTreasureProps {
   evolutionLevel: number;
 }
 
-// Temporary interface to handle the multi-attack state internally
-interface MultiAttackState {
-  selectedAttacks: BlobAttack[];
-  primaryAttack: BlobAttack;
-}
-
 const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
   appearance,
   unlockedOptions,
@@ -43,14 +37,8 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
   const { playSoundEffect } = useSounds();
   const { settings } = useSettings();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'types' | 'eyes' | 'mouths' | 'attacks'>('types');
+  const [activeTab, setActiveTab] = useState<'types' | 'eyes' | 'mouths'>('types');
   const [phase, setPhase] = useState<BlobEvolutionPhase>('blob');
-
-  // Track the multi-attack state
-  const [attackState, setAttackState] = useState<MultiAttackState>({
-    selectedAttacks: appearance.attack !== 'none' ? [appearance.attack] : [],
-    primaryAttack: appearance.attack
-  });
 
   // Update appearance in localStorage whenever changes are made
   useEffect(() => {
@@ -62,7 +50,6 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
           eyes: appearance.eyes,
           mouth: appearance.mouth,
           attack: appearance.attack,
-          selectedAttacks: attackState.selectedAttacks,
           evolutionLevel: evolutionLevel
         };
 
@@ -73,7 +60,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
         console.error('Error saving appearance data to localStorage', e);
       }
     }
-  }, [appearance, attackState.selectedAttacks, evolutionLevel]);
+  }, [appearance, evolutionLevel]);
 
   // Create attackMap from the imported attacks
   const attackMap = useMemo(() => {
@@ -94,24 +81,6 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
     return map as Record<BlobAttack, { icon: string; name: string; description: string }>;
   }, []);
 
-  // Filter available attacks based on evolution level and blob type
-  const availableAttacks = useMemo(() => {
-    // Get attacks appropriate for the current evolution level
-    const levelAttacks = getAttacksByEvolutionLevel(evolutionLevel);
-
-    // Include generic attacks plus type-specific attacks
-    const typeSpecificAttacks = getAttacksByType(appearance.type);
-
-    // Combine and deduplicate
-    const combined = [...levelAttacks, ...typeSpecificAttacks];
-    const uniqueAttacks = Array.from(new Set(combined.map(a => a.id)))
-      .map(id => combined.find(a => a.id === id)!)
-      .map(a => a.id as BlobAttack);
-
-    // Always include 'none'
-    return ['none', ...uniqueAttacks];
-  }, [evolutionLevel, appearance.type]);
-
   useEffect(() => {
     // Determine evolution phase based on level
     if (evolutionLevel <= 1) {
@@ -125,14 +94,6 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
     }
   }, [evolutionLevel]);
 
-  useEffect(() => {
-    // Update attack state when appearance changes from outside
-    setAttackState({
-      selectedAttacks: appearance.attack !== 'none' ? [appearance.attack] : [],
-      primaryAttack: appearance.attack
-    });
-  }, [appearance.attack]);
-
   const handleOpen = () => {
     setIsOpen(prev => !prev);
     if (settings.sound) {
@@ -140,76 +101,10 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
     }
   };
 
-  const handleTabChange = (tab: 'types' | 'eyes' | 'mouths' | 'attacks') => {
+  const handleTabChange = (tab: 'types' | 'eyes' | 'mouths') => {
     setActiveTab(tab);
     if (settings.sound) {
       playSoundEffect('click');
-    }
-  };
-
-  const handleMultiAttackChange = (attack: BlobAttack) => {
-    if (attack === 'none') {
-      // Clear all attacks
-      setAttackState({
-        selectedAttacks: [],
-        primaryAttack: 'none'
-      });
-      onAttackChange('none');
-      return;
-    }
-
-    // Toggle the attack in the selected list
-    let newSelectedAttacks: BlobAttack[];
-    if (attackState.selectedAttacks.includes(attack)) {
-      // If removing the primary attack, set a new primary
-      const isPrimary = attackState.primaryAttack === attack;
-      newSelectedAttacks = attackState.selectedAttacks.filter(a => a !== attack);
-
-      const newPrimary = newSelectedAttacks.length > 0 ? newSelectedAttacks[0] : 'none';
-      setAttackState({
-        selectedAttacks: newSelectedAttacks,
-        primaryAttack: isPrimary ? newPrimary : attackState.primaryAttack
-      });
-
-      // Update the primary attack in the appearance
-      if (isPrimary) {
-        onAttackChange(newPrimary);
-      }
-    } else {
-      // Add the attack (limit to 4 maximum)
-      if (attackState.selectedAttacks.length < 4) {
-        newSelectedAttacks = [...attackState.selectedAttacks, attack];
-
-        // If this is the first attack, make it primary
-        const newPrimary = attackState.selectedAttacks.length === 0 ? attack : attackState.primaryAttack;
-        setAttackState({
-          selectedAttacks: newSelectedAttacks,
-          primaryAttack: newPrimary
-        });
-
-        // Update the primary attack in the appearance if needed
-        if (attackState.selectedAttacks.length === 0) {
-          onAttackChange(attack);
-        }
-      }
-    }
-
-    if (settings.sound) {
-      playSoundEffect('click');
-    }
-  };
-
-  const setPrimaryAttack = (attack: BlobAttack) => {
-    if (attackState.selectedAttacks.includes(attack)) {
-      setAttackState({
-        ...attackState,
-        primaryAttack: attack
-      });
-      onAttackChange(attack);
-
-      if (settings.sound) {
-        playSoundEffect('click');
-      }
     }
   };
 
@@ -353,15 +248,9 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
     }
   };
 
-  // Get attack positions based on index
-  const getAttackPosition = (index: number): string => {
-    const positions = [
-      '-right-4 top-4',
-      '-top-4 left-1/2 transform -translate-x-1/2',
-      '-left-4 top-4',
-      'bottom-0 right-0'
-    ];
-    return positions[index % positions.length];
+  // Get attack positions 
+  const getAttackPosition = (): string => {
+    return '-right-4 top-4';
   };
 
   return (
@@ -434,12 +323,6 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
               >
                 Mouth
               </button>
-              <button
-                className={`flex-1 p-2 pixel-text text-sm ${activeTab === 'attacks' ? 'bg-blob-tertiary text-white' : 'bg-transparent text-gray-400'}`}
-                onClick={() => handleTabChange('attacks')}
-              >
-                Attacks
-              </button>
             </div>
 
             {/* Content based on active tab */}
@@ -470,13 +353,10 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
 
                   {phase === 'blob' && (
                     <div className="relative">
-                      {/* Multiple Attacks */}
-                      {attackState.selectedAttacks.map((attack, index) => (
-                        attack !== 'none' &&
-                        <React.Fragment key={attack}>
-                          {getAttackComponent(attack, getAttackPosition(index))}
-                        </React.Fragment>
-                      ))}
+                      {/* Display current attack */}
+                      {appearance.attack !== 'none' && (
+                        getAttackComponent(appearance.attack, getAttackPosition())
+                      )}
 
                       <div
                         className={cn(
@@ -508,13 +388,10 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
 
                   {phase === 'baby' && (
                     <div className="relative">
-                      {/* Multiple Attacks */}
-                      {attackState.selectedAttacks.map((attack, index) => (
-                        attack !== 'none' &&
-                        <React.Fragment key={attack}>
-                          {getAttackComponent(attack, getAttackPosition(index))}
-                        </React.Fragment>
-                      ))}
+                      {/* Display current attack */}
+                      {appearance.attack !== 'none' && (
+                        getAttackComponent(appearance.attack, getAttackPosition())
+                      )}
 
                       {/* Body - slightly larger with stubby limbs */}
                       <div
@@ -570,13 +447,10 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                       >
                         {/* Head */}
                         <div className={cn("absolute left-1/2 transform -translate-x-1/2 -top-12 w-20 h-20 rounded-full", typeMap[appearance.type].bg)}>
-                          {/* Multiple Attacks */}
-                          {attackState.selectedAttacks.map((attack, index) => (
-                            attack !== 'none' &&
-                            <React.Fragment key={attack}>
-                              {getAttackComponent(attack, getAttackPosition(index))}
-                            </React.Fragment>
-                          ))}
+                          {/* Display current attack */}
+                          {appearance.attack !== 'none' && (
+                            getAttackComponent(appearance.attack, getAttackPosition())
+                          )}
 
                           {/* Face */}
                           <div className="relative w-full h-full">
@@ -711,103 +585,12 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                 </div>
               )}
 
-              {/* Attacks Tab Content */}
-              {activeTab === 'attacks' && (
-                <div>
-                  <h4 className="text-white pixel-text mb-2">Choose Attacks (up to 4)</h4>
-                  <div className="mb-2 px-2 py-1 bg-gray-800 rounded text-white text-xs">
-                    {attackState.selectedAttacks.length === 0 ? (
-                      <span>No attacks selected</span>
-                    ) : (
-                      <div className="flex flex-wrap gap-1">
-                        {attackState.selectedAttacks.map(attack => (
-                          <div
-                            key={attack}
-                            className={`px-2 py-1 rounded-full text-xs flex items-center ${attack === attackState.primaryAttack ? 'bg-blob-tertiary' : 'bg-gray-700'}`}
-                            onClick={() => setPrimaryAttack(attack)}
-                          >
-                            <span className="mr-1">{attackMap[attack]?.icon || '⚪'}</span>
-                            <span>{attackMap[attack]?.name || attack}</span>
-                            {attack === attackState.primaryAttack && <span className="ml-1 text-[8px]">◆</span>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2">
-                    <button
-                      className={`w-full p-2 bg-gray-700 rounded-lg flex items-center`}
-                      onClick={() => handleMultiAttackChange('none')}
-                    >
-                      <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-2xl mr-3">
-                        {attackMap['none'].icon}
-                      </div>
-                      <div className="text-left">
-                        <div className="text-white font-semibold">Clear All Attacks</div>
-                      </div>
-                    </button>
-
-                    {availableAttacks.filter(a => a !== 'none' && unlockedOptions.attacks.includes(a as BlobAttack)).map((attack) => {
-                      const attackData = attackMap[attack];
-                      if (!attackData) return null;
-
-                      // Cast attack to BlobAttack type for type safety
-                      const attackId = attack as BlobAttack;
-
-                      return (
-                        <button
-                          key={attack}
-                          className={`w-full p-2 bg-gray-700 rounded-lg flex items-center ${attackState.selectedAttacks.includes(attackId) ? 'ring-2 ring-offset-2 ring-white' : ''} ${attackState.selectedAttacks.length >= 4 && !attackState.selectedAttacks.includes(attackId) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          onClick={() => handleMultiAttackChange(attackId)}
-                          disabled={attackState.selectedAttacks.length >= 4 && !attackState.selectedAttacks.includes(attackId)}
-                        >
-                          <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-2xl mr-3">
-                            {attackData.icon}
-                          </div>
-                          <div className="text-left">
-                            <div className="text-white font-semibold flex items-center">
-                              {attackData.name}
-                              {attackState.primaryAttack === attackId && (
-                                <span className="ml-2 text-yellow-400 text-xs">Primary</span>
-                              )}
-                            </div>
-                            <div className="text-gray-300 text-xs">{attackData.description}</div>
-                          </div>
-                          {attackState.selectedAttacks.includes(attackId) && (
-                            <div className="ml-auto">
-                              <div className="w-6 h-6 bg-gray-900 rounded-full flex items-center justify-center text-white">✓</div>
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-
-                    {evolutionLevel < 7 && (
-                      <div className="w-full p-2 bg-gray-700 rounded-lg flex items-center text-gray-400">
-                        <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-xl mr-3">
-                          🔒
-                        </div>
-                        <div className="text-left">
-                          <div className="font-semibold">Locked Attack</div>
-                          <div className="text-xs">Reach higher evolution level to unlock</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Reset button */}
               <div className="mt-4 flex justify-center">
                 <button
                   className="px-4 py-2 bg-blob-tertiary rounded text-white pixel-text hover:bg-blob-secondary transition-colors"
                   onClick={() => {
                     onReset();
-                    setAttackState({
-                      selectedAttacks: [],
-                      primaryAttack: 'none'
-                    });
                     if (settings.sound) {
                       playSoundEffect('click');
                     }

@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BlobMood } from '@/components/Blob';
+import { WeatherType, TimeOfDay } from '@/hooks/useWeather';
+import { calculateStatsChange } from '@/utils/blobStatsCalculations';
 
 export interface BlobStats {
   hunger: number;
@@ -11,6 +13,12 @@ export interface BlobStats {
   mood: BlobMood;
   actionCounter: number;
   lastAction: string | null;
+  lastUpdateTime: number;
+  lastEvolutionTime: number;
+  justEvolved: boolean;
+  newEvolutionLevel: number | null;
+  showAttackOffer: boolean;
+  lastAttackOfferLevel: number;
 }
 
 const initialState: BlobStats = {
@@ -22,8 +30,17 @@ const initialState: BlobStats = {
   evolutionProgress: 25,
   mood: 'normal',
   actionCounter: 0,
-  lastAction: null
+  lastAction: null,
+  lastUpdateTime: Date.now(),
+  lastEvolutionTime: Date.now(),
+  justEvolved: false,
+  newEvolutionLevel: null,
+  showAttackOffer: false,
+  lastAttackOfferLevel: 1
 };
+
+const EVOLUTION_DAY_INTERVAL = 1;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export const blobStatsSlice = createSlice({
   name: 'blobStats',
@@ -56,11 +73,83 @@ export const blobStatsSlice = createSlice({
     setLastAction: (state, action: PayloadAction<string | null>) => {
       state.lastAction = action.payload;
     },
-    decreaseStats: (state) => {
-      state.hunger = Math.max(0, state.hunger - 1);
-      state.happiness = Math.max(0, state.happiness - 0.5);
-      state.hygiene = Math.max(0, state.hygiene - 0.3);
-      state.energy = Math.max(0, state.energy - 0.7);
+    decreaseStats: (state, action: PayloadAction<{ weather: WeatherType; timeOfDay: TimeOfDay }>) => {
+      const currentTime = Date.now();
+      const timeSinceLastUpdate = currentTime - state.lastUpdateTime;
+      
+      if (timeSinceLastUpdate >= 1000) {
+        const { weather, timeOfDay } = action.payload;
+        
+        const newStats = calculateStatsChange(
+          {
+            hunger: state.hunger,
+            happiness: state.happiness,
+            hygiene: state.hygiene,
+            energy: state.energy
+          },
+          weather,
+          timeOfDay,
+          timeSinceLastUpdate
+        );
+        
+        state.hunger = newStats.hunger;
+        state.happiness = newStats.happiness;
+        state.hygiene = newStats.hygiene;
+        state.energy = newStats.energy;
+        
+        state.lastUpdateTime = currentTime;
+      }
+    },
+    checkEvolution: (state) => {
+      state.justEvolved = false;
+      state.newEvolutionLevel = null;
+      
+      const currentTime = Date.now();
+      const timeSinceLastEvolution = currentTime - state.lastEvolutionTime;
+      
+      const daysPassed = timeSinceLastEvolution / MILLISECONDS_PER_DAY;
+      
+      if (daysPassed >= EVOLUTION_DAY_INTERVAL) {
+        const evolutionIntervals = Math.floor(daysPassed / EVOLUTION_DAY_INTERVAL);
+        
+        let progressToAdd = evolutionIntervals * 25;
+        
+        const oldLevel = state.evolutionLevel;
+        
+        state.evolutionProgress += progressToAdd;
+        
+        while (state.evolutionProgress >= 100) {
+          state.evolutionLevel += 1;
+          state.evolutionProgress -= 100;
+        }
+        
+        if (state.evolutionLevel > oldLevel) {
+          state.justEvolved = true;
+          state.newEvolutionLevel = state.evolutionLevel;
+          
+          if (state.lastAttackOfferLevel < state.evolutionLevel) {
+            state.showAttackOffer = true;
+          }
+        }
+        
+        state.lastEvolutionTime += evolutionIntervals * EVOLUTION_DAY_INTERVAL * MILLISECONDS_PER_DAY;
+      }
+    },
+    resetEvolutionFlags: (state) => {
+      state.justEvolved = false;
+      state.newEvolutionLevel = null;
+    },
+    resetAttackOfferFlag: (state) => {
+      state.showAttackOffer = false;
+    },
+    updateLastAttackOfferLevel: (state) => {
+      if (state.lastAttackOfferLevel < state.evolutionLevel) {
+        state.lastAttackOfferLevel += 1;
+        
+        if (state.lastAttackOfferLevel < state.evolutionLevel) {
+          state.showAttackOffer = true;
+        }
+      }
     },
     feedBlob: (state) => {
       state.hunger = Math.min(100, state.hunger + 20);
@@ -94,16 +183,26 @@ export const blobStatsSlice = createSlice({
       state.actionCounter += 1;
     },
     increaseEvolution: (state) => {
-      state.actionCounter += 1;
-      if (state.actionCounter % 10 === 0) {
-        state.evolutionProgress += 10;
-        if (state.evolutionProgress >= 100) {
-          state.evolutionLevel += 1;
-          state.evolutionProgress = 0;
+      const oldLevel = state.evolutionLevel;
+      
+      state.evolutionProgress += 10;
+      if (state.evolutionProgress >= 100) {
+        state.evolutionLevel += 1;
+        state.evolutionProgress = 0;
+        
+        if (state.evolutionLevel > oldLevel) {
+          state.justEvolved = true;
+          state.newEvolutionLevel = state.evolutionLevel;
+          
+          if (state.lastAttackOfferLevel < state.evolutionLevel) {
+            state.showAttackOffer = true;
+          }
         }
       }
     },
     devLevelUp: (state, action: PayloadAction<number>) => {
+      const oldLevel = state.evolutionLevel;
+      
       if (action.payload === 1) {
         state.evolutionProgress += 50;
         if (state.evolutionProgress >= 100) {
@@ -114,6 +213,15 @@ export const blobStatsSlice = createSlice({
         state.evolutionLevel += (action.payload - 1);
         state.evolutionProgress = 0;
       }
+      
+      if (state.evolutionLevel > oldLevel) {
+        state.justEvolved = true;
+        state.newEvolutionLevel = state.evolutionLevel;
+        
+        if (state.lastAttackOfferLevel < state.evolutionLevel) {
+          state.showAttackOffer = true;
+        }
+      }
     }
   }
 });
@@ -123,7 +231,9 @@ export const {
   setEvolutionLevel, setEvolutionProgress, setMood, 
   increaseActionCounter, setLastAction, decreaseStats,
   feedBlob, playWithBlob, cleanBlob, restBlob, 
-  handleBlobClick, increaseEvolution, devLevelUp
+  handleBlobClick, increaseEvolution, devLevelUp,
+  checkEvolution, resetEvolutionFlags, resetAttackOfferFlag,
+  updateLastAttackOfferLevel
 } = blobStatsSlice.actions;
 
 export default blobStatsSlice.reducer; 

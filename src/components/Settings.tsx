@@ -115,33 +115,6 @@ const Settings: React.FC<SettingsProps> = ({
             />
           </div>
           
-          <Separator className="bg-gray-700" />
-          
-          <div className="space-y-2">
-            <Label className="font-pixel">Theme</Label>
-            <RadioGroup 
-              defaultValue={settings.theme} 
-              onValueChange={handleThemeChange}
-              className="grid grid-cols-2 gap-2"
-            >
-              <div className="flex items-center space-x-2 bg-gray-700/50 p-2 rounded-md">
-                <RadioGroupItem value="default" id="theme-default" className="text-blob-primary" />
-                <Label htmlFor="theme-default" className="cursor-pointer">Default</Label>
-              </div>
-              <div className="flex items-center space-x-2 bg-blue-900/30 p-2 rounded-md">
-                <RadioGroupItem value="blue" id="theme-blue" className="text-blue-400" />
-                <Label htmlFor="theme-blue" className="cursor-pointer">Blue</Label>
-              </div>
-              <div className="flex items-center space-x-2 bg-green-900/30 p-2 rounded-md">
-                <RadioGroupItem value="green" id="theme-green" className="text-green-400" />
-                <Label htmlFor="theme-green" className="cursor-pointer">Green</Label>
-              </div>
-              <div className="flex items-center space-x-2 bg-pink-900/30 p-2 rounded-md">
-                <RadioGroupItem value="pink" id="theme-pink" className="text-pink-400" />
-                <Label htmlFor="theme-pink" className="cursor-pointer">Pink</Label>
-              </div>
-            </RadioGroup>
-          </div>
           
           {!settings.devMode && (
             <>

@@ -10,10 +10,11 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useSettingsRedux } from '@/hooks/useSettingsRedux';
 import BlobBattlegroundsWithProvider from '@/components/BlobBattlegrounds';
 import { useBattle } from '@/contexts/BattleContext';
+import AttackOfferModal from '@/components/AttackOfferModal';
 
 const Index = () => {
   const isMobile = useIsMobile();
-  const { stats, actions } = useBlobStatsRedux();
+  const { stats, actions, attackModalProps, showAttackOfferModal } = useBlobStatsRedux();
   const { settings } = useSettingsRedux();
   const [isBattlegroundsOpen, setIsBattlegroundsOpen] = useState(false);
 
@@ -56,7 +57,10 @@ const Index = () => {
 
         <Footer />
       </div>
-    </div >
+
+      {/* Attack Offer Modal */}
+      {showAttackOfferModal && <AttackOfferModal {...attackModalProps} />}
+    </div>
   );
 };
 

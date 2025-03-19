@@ -1,5 +1,4 @@
-
-type SoundType = 'feed' | 'play' | 'clean' | 'rest' | 'click';
+type SoundType = 'feed' | 'play' | 'clean' | 'rest' | 'click' | 'levelUp';
 
 // Sound files would normally be imported or referenced from public folder
 // For this implementation, we'll use the Web Audio API to generate simple sounds
@@ -67,6 +66,22 @@ export function useSounds() {
         gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
         oscillator.start();
         oscillator.stop(audioContext.currentTime + 0.3);
+        break;
+        
+      case 'levelUp':
+        // Special evolution fanfare sound
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4
+        oscillator.frequency.setValueAtTime(554, audioContext.currentTime + 0.1); // C#5
+        oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.2); // E5
+        oscillator.frequency.setValueAtTime(880, audioContext.currentTime + 0.3); // A5
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.4);
+        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.5);
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.5);
         break;
         
       case 'click':

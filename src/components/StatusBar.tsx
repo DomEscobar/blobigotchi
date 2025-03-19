@@ -24,11 +24,6 @@ const StatusBar: React.FC<StatusBarProps> = ({
   return (
     <div className="status-container group bg-black/90 border-gray-700">
       <div className="flex items-center px-2 py-1 w-full">
-        <Icon 
-          size={isMobile ? 14 : 16} 
-          className={`text-${color} transition-transform group-hover:scale-110 mr-2`} 
-        />
-        
         <div className="flex flex-col flex-1">
           <div className="flex justify-between items-center">
             <span className={`pixel-text ${isMobile ? 'text-[10px]' : 'text-xs'} text-white`}>
