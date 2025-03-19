@@ -97,7 +97,7 @@ const getWeatherDescription = (code: number): string => {
 // Determine time of day based on hour
 const getTimeOfDay = (dateTime: string): TimeOfDay => {
   const hour = new Date(dateTime).getHours();
-  
+
   if (hour >= 5 && hour < 8) {
     return 'sunrise';
   } else if (hour >= 8 && hour < 18) {
@@ -120,11 +120,11 @@ const getLocationName = async (latitude: number, longitude: number): Promise<str
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
     );
-    
+
     if (!response.ok) {
       throw new Error(`Geocoding error: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data.address?.city || data.address?.town || data.address?.village || data.address?.county || 'Unknown location';
   } catch (error) {
@@ -138,13 +138,13 @@ const getLocationFromIP = async (): Promise<{ latitude: number; longitude: numbe
   // First try geojs.io (reliable, no API key needed)
   try {
     const response = await fetch('https://get.geojs.io/v1/ip/geo.json');
-    
+
     if (!response.ok) {
       throw new Error(`geojs.io error: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     if (data[0] && data[0].latitude && data[0].longitude) {
       console.log('Using geojs.io geolocation');
       return {
@@ -155,18 +155,18 @@ const getLocationFromIP = async (): Promise<{ latitude: number; longitude: numbe
     throw new Error('geojs.io did not return valid coordinates');
   } catch (error) {
     console.warn('First IP geolocation service failed, trying second service', error);
-    
+
     // Try second IP geolocation service
     try {
       // Using ipwhois.io (free tier, no API key required)
       const response = await fetch('https://ipwho.is/');
-      
+
       if (!response.ok) {
         throw new Error(`ipwho.is error: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.latitude && data.longitude) {
         console.log('Using ipwho.is geolocation');
         return {
@@ -177,18 +177,18 @@ const getLocationFromIP = async (): Promise<{ latitude: number; longitude: numbe
       throw new Error('ipwho.is did not return valid coordinates');
     } catch (secondError) {
       console.warn('Second IP geolocation service failed, trying third service', secondError);
-      
+
       // Try third IP geolocation service as final fallback
       try {
         // Using Abstract API's free geolocation service with no key required
         const response = await fetch('https://ipgeolocation.abstractapi.com/v1/?api_key=9b2b40e093f24aa5ae6726eb12bae165');
-        
+
         if (!response.ok) {
           throw new Error(`Abstract API error: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.latitude && data.longitude) {
           console.log('Using Abstract API geolocation');
           return {
@@ -215,87 +215,55 @@ export const useWeather = () => {
     const fetchWeather = async () => {
       try {
         setLoading(true);
-        
+
         // Default coordinates (New York) as final fallback
         let latitude = 40.7128;
         let longitude = -74.0060;
         let locSource = 'default';
-        
+
         try {
-          // Try browser geolocation first
-          if (navigator.geolocation) {
-            try {
-              const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                  timeout: 5000,
-                  maximumAge: 60000,
-                });
-              });
-              
-              latitude = position.coords.latitude;
-              longitude = position.coords.longitude;
-              locSource = 'browser';
-              console.log('Using browser geolocation');
-            } catch (geoError) {
-              console.warn('Browser geolocation failed, trying IP-based geolocation', geoError);
-              
-              // If browser geolocation fails, try IP-based geolocation
-              try {
-                const ipLocation = await getLocationFromIP();
-                latitude = ipLocation.latitude;
-                longitude = ipLocation.longitude;
-                locSource = 'ip';
-              } catch (ipError) {
-                console.warn('IP geolocation also failed, using default coordinates', ipError);
-                // If both fail, we'll use the default coordinates defined above
-              }
-            }
-          } else {
-            // If geolocation is not supported, try IP-based
-            console.warn('Geolocation not supported, trying IP-based geolocation');
-            try {
-              const ipLocation = await getLocationFromIP();
-              latitude = ipLocation.latitude;
-              longitude = ipLocation.longitude;
-              locSource = 'ip';
-            } catch (ipError) {
-              console.warn('IP geolocation failed, using default coordinates', ipError);
-              // Use default coordinates
-            }
+          try {
+            const ipLocation = await getLocationFromIP();
+            latitude = ipLocation.latitude;
+            longitude = ipLocation.longitude;
+            locSource = 'ip';
+          } catch (ipError) {
+            console.warn('IP geolocation failed, using default coordinates', ipError);
+            // Use default coordinates
           }
         } catch (locationError) {
           console.warn('Location detection failed completely, using default', locationError);
         }
-        
+
         setLocationSource(locSource);
-        
+
         // Using Open-Meteo API which doesn't require an API key
         const response = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`
         );
-        
+
         if (!response.ok) {
           throw new Error(`Weather API error: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Get current weather data
         const currentWeather = data.current;
-        
+
         // Get weather type from WMO code
         const weatherCode = currentWeather.weather_code;
         const weatherType = getWeatherTypeFromWMO(weatherCode);
         const weatherDescription = getWeatherDescription(weatherCode);
-        
+
         // Get location name
         const locationName = await getLocationName(latitude, longitude);
-        
+
         // Determine time of day
         const currentDateTime = currentWeather.time;
         const timeOfDay = getTimeOfDay(currentDateTime);
         const dayStatus = isDay(timeOfDay);
-        
+
         setWeather({
           type: weatherType,
           description: weatherDescription,
@@ -307,7 +275,7 @@ export const useWeather = () => {
           timeOfDay: timeOfDay,
           isDay: dayStatus
         });
-        
+
         setError(null);
       } catch (err) {
         console.error('Error fetching weather:', err);
@@ -319,10 +287,10 @@ export const useWeather = () => {
     };
 
     fetchWeather();
-    
+
     // Refresh weather data every 30 minutes
     const intervalId = setInterval(fetchWeather, 30 * 60 * 1000);
-    
+
     return () => clearInterval(intervalId);
   }, []);
 
