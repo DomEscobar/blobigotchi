@@ -265,85 +265,6 @@ const attacks: Attack[] = [
   },
   
   // Poison type attacks
-  {
-    id: "sludge_bomb",
-    name: "Sludge Bomb",
-    type: "poison",
-    category: "special",
-    basePower: 90,
-    accuracy: 100,
-    description: "Hurls filthy sludge that may poison the opponent",
-    icon: "☠️",
-    effectDescription: "30% chance to poison the opponent",
-    animation: "animate-sludge-bomb",
-    minLevel: 4
-  },
-  {
-    id: "toxic",
-    name: "Toxic",
-    type: "poison",
-    category: "status",
-    basePower: 0,
-    accuracy: 90,
-    description: "Badly poisons the opponent, with damage increasing each turn",
-    icon: "☣️",
-    effectDescription: "Badly poisons the opponent",
-    animation: "animate-toxic",
-    minLevel: 6
-  },
-  {
-    id: "acid_spray",
-    name: "Acid Spray",
-    type: "poison",
-    category: "special",
-    basePower: 40,
-    accuracy: 100,
-    description: "Sprays acid that severely reduces the opponent's special defense",
-    icon: "💧",
-    effectDescription: "Sharply lowers opponent's special defense",
-    animation: "animate-acid-spray",
-    minLevel: 2
-  },
-  
-  // Ground type attacks
-  {
-    id: "rockthrow",
-    name: "Rock Throw",
-    type: "rock",
-    category: "physical",
-    basePower: 50,
-    accuracy: 90,
-    description: "Hurls hard rocks at the opponent",
-    icon: "🪨",
-    animation: "animate-rock-throw",
-    minLevel: 2
-  },
-  {
-    id: "earthquake",
-    name: "Earthquake",
-    type: "ground",
-    category: "physical",
-    basePower: 100,
-    accuracy: 100,
-    description: "A powerful quake that deals massive damage",
-    icon: "🌋",
-    animation: "animate-earthquake",
-    minLevel: 8
-  },
-  {
-    id: "sandstorm",
-    name: "Sandstorm",
-    type: "ground",
-    category: "status",
-    basePower: 0,
-    accuracy: 100,
-    description: "Summons a sandstorm that damages certain types over time",
-    icon: "🏜️",
-    effectDescription: "Creates a sandstorm that lasts for 5 turns",
-    animation: "animate-sandstorm",
-    minLevel: 4
-  },
-  
   // Psychic type attacks
   {
     id: "psychicwave",
@@ -385,47 +306,6 @@ const attacks: Attack[] = [
     minLevel: 4
   },
   
-  // Ghost type attacks
-  {
-    id: "shadowball",
-    name: "Shadow Ball",
-    type: "ghost",
-    category: "special",
-    basePower: 80,
-    accuracy: 100,
-    description: "Hurls a shadowy blob that may lower special defense",
-    icon: "👻",
-    effectDescription: "20% chance to lower special defense",
-    animation: "animate-shadow-ball",
-    minLevel: 6
-  },
-  {
-    id: "phantom_force",
-    name: "Phantom Force",
-    type: "ghost",
-    category: "physical",
-    basePower: 90,
-    accuracy: 100,
-    description: "Disappears and attacks on the next turn, bypassing protections",
-    icon: "👻",
-    effectDescription: "Disappears on first turn, attacks on second, bypasses Protect",
-    animation: "animate-phantom-force",
-    minLevel: 8
-  },
-  {
-    id: "static_slam",
-    name: "Static Slam",
-    type: "ghost",
-    category: "physical",
-    basePower: 70,
-    accuracy: 90,
-    description: "A glitchy static attack that can cause paralysis",
-    icon: "📺",
-    effectDescription: "30% chance to paralyze",
-    animation: "animate-static-slam",
-    minLevel: 4
-  },
-  
   // Normal type attacks
   {
     id: "tackle",
@@ -439,6 +319,30 @@ const attacks: Attack[] = [
     animation: "animate-tackle",
     minLevel: 1
   },
+   {
+    id: "body_slam",
+    name: "Body Slam",
+    type: "normal",
+    category: "physical",
+    basePower: 85,
+    accuracy: 100,
+    description: "A powerful body slam attack",
+    icon: "👊",
+    animation: "animate-body-slam",
+    minLevel: 2
+   },
+   {
+    id:"Fury_Attack",
+    name: "Fury Attack",
+    type: "normal",
+    category: "physical",
+    basePower: 15,
+    accuracy: 85,
+    description: "A flurry of attacks that deals damage",
+    icon: "👊",
+    animation: "animate-fury-attack",
+    minLevel: 2
+   },
   {
     id: "blob_beam",
     name: "Blob Beam",

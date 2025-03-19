@@ -275,11 +275,7 @@ const BattleAttackButton = ({
       case 'grass': return "bg-green-900/30 border-green-700 hover:border-green-600";
       case 'ice': return "bg-cyan-900/30 border-cyan-700 hover:border-cyan-600";
       case 'fighting': return "bg-orange-900/30 border-orange-700 hover:border-orange-600";
-      case 'poison': return "bg-purple-900/30 border-purple-700 hover:border-purple-600";
-      case 'ground': 
-      case 'rock': return "bg-amber-900/30 border-amber-700 hover:border-amber-600";
       case 'psychic': return "bg-pink-900/30 border-pink-700 hover:border-pink-600";
-      case 'ghost': return "bg-indigo-900/30 border-indigo-700 hover:border-indigo-600";
       default: return "bg-gray-900/30 border-gray-700 hover:border-gray-600";
     }
   };
@@ -506,11 +502,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
         case 'grass': return 'grass';
         case 'ice': return 'ice';
         case 'fighting': return 'hit';
-        case 'poison': return 'poison';
-        case 'ground': 
-        case 'rock': return 'rock';
         case 'psychic': return 'psychic';
-        case 'ghost': return 'ghost';
         default: return 'normal';
       }
     };
@@ -542,8 +534,6 @@ const BattleArena: React.FC<BattleArenaProps> = ({ evolutionLevel, onClose, appe
       case 'grass': return 'animate-grass-attack';
       case 'ice': return 'animate-ice-attack';
       case 'fighting': return 'animate-fighting-attack';
-      case 'poison': return 'animate-poison-attack';
-      case 'ghost': return 'animate-ghost-attack';
       case 'psychic': return 'animate-psychic-attack';
       default: return 'animate-normal-attack';
     }

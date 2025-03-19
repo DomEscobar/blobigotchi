@@ -77,16 +77,6 @@ const Blob: React.FC<BlobProps> = ({ mood, onClick, className, evolutionLevel = 
         return 'bg-cyan-300';
       case 'fighting':
         return 'bg-orange-600';
-      case 'poison':
-        return 'bg-purple-500';
-      case 'ground':
-        return 'bg-amber-600';
-      case 'rock':
-        return 'bg-stone-500';
-      case 'psychic':
-        return 'bg-pink-400';
-      case 'ghost':
-        return 'bg-indigo-500';
       default:
         return 'bg-blob-primary';
     }
@@ -181,6 +171,39 @@ const getEyeComponent = (eyeStyle: string) => {
       );
     case 'square':
       return <div className="absolute w-3/4 h-3/4 bg-black rounded-sm mx-auto my-auto"></div>;
+    case 'sleepy':
+      return (
+        <div className="absolute w-full h-full relative">
+          <span className="block w-full h-2/5 bg-black rounded-full absolute bottom-0"></span>
+        </div>
+      );
+    case 'angry':
+      return (
+        <div className="absolute w-full h-full relative">
+          <span className="block w-full h-full bg-black rounded-full"></span>
+          <span className="absolute -top-1 -left-1 w-3/5 h-1 bg-black rotate-45"></span>
+        </div>
+      );
+    case 'cute':
+      return (
+        <div className="absolute w-full h-full flex items-center justify-center">
+          <span className="block w-3/4 h-3/4 bg-black rounded-full"></span>
+          <span className="absolute w-1/3 h-1/3 bg-white rounded-full top-1/4 left-1/4"></span>
+        </div>
+      );
+    case 'pixel':
+      return (
+        <div className="absolute w-full h-full grid grid-cols-3 grid-rows-3">
+          <div className="col-start-2 col-end-3 row-start-2 row-end-3 bg-black"></div>
+        </div>
+      );
+    case 'dizzy':
+      return (
+        <div className="absolute w-full h-full relative">
+          <span className="absolute top-1/2 left-0 w-full h-1/5 bg-black rounded-full transform -rotate-45"></span>
+          <span className="absolute top-1/2 left-0 w-full h-1/5 bg-black rounded-full transform rotate-45"></span>
+        </div>
+      );
     default:
       return <div className="absolute w-full h-full bg-black rounded-full"></div>;
   }
@@ -215,6 +238,43 @@ const getMouthComponent = (mouthStyle: string, mood: BlobMood) => {
       return (
         <div className="w-full h-full flex items-center justify-center">
           <div className="w-3/4 h-1/3 bg-black rounded-sm transform rotate-12"></div>
+        </div>
+      );
+    case 'smirk':
+      return (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-3/4 h-1/3 bg-black rounded-sm transform translate-x-1 rotate-6"></div>
+        </div>
+      );
+    case 'laugh':
+      return (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-3/4 h-2/3 bg-black rounded-md flex flex-col justify-center items-center">
+            <div className="w-2/3 h-1/3 bg-white rounded-sm"></div>
+          </div>
+        </div>
+      );
+    case 'sad':
+      return (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-1/2 h-1/2 border-b-2 border-l-2 border-r-2 border-black rounded-b-full transform rotate-180"></div>
+        </div>
+      );
+    case 'tongue':
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center relative">
+          <div className="w-1/2 h-1/2 border-b-2 border-l-2 border-r-2 border-black rounded-b-full"></div>
+          <div className="w-1/4 h-2/3 bg-red-400 absolute -bottom-1/3 rounded-b-md"></div>
+        </div>
+      );
+    case 'pixel':
+      return (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-2/3 h-1/3 grid grid-cols-3 gap-0.5">
+            <div className="bg-black"></div>
+            <div className="bg-black"></div>
+            <div className="bg-black"></div>
+          </div>
         </div>
       );
     default:

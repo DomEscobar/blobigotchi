@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { useSettings } from './useSettings';
 
 // Types for appearance customization
-export type BlobType = 'normal' | 'fire' | 'water' | 'electric' | 'grass' | 'ice' | 'fighting' | 'poison' | 'ground' | 'rock' | 'psychic' | 'ghost';
-export type BlobEyes = 'default' | 'round' | 'oval' | 'star' | 'heart' | 'square';
-export type BlobMouth = 'default' | 'wide' | 'small' | 'kawaii' | 'surprised' | 'cool';
+export type BlobType = 'normal' | 'fire' | 'water' | 'electric' | 'grass' | 'ice' | 'fighting' | 'psychic';
+export type BlobEyes = 'default' | 'round' | 'oval' | 'star' | 'heart' | 'square' | 'sleepy' | 'angry' | 'cute' | 'pixel' | 'dizzy';
+export type BlobMouth = 'default' | 'wide' | 'small' | 'kawaii' | 'surprised' | 'cool' | 'smirk' | 'laugh' | 'sad' | 'tongue' | 'pixel';
 export type BlobAttack = 'none' | 'fireball' | 'watergun' | 'thunderbolt' | 'rockthrow' | 'leafblade' | 'psychicwave' | 'shadowball' | 'icebeam' |
   'flamethrower' | 'fire_spin' | 'hydro_pump' | 'aqua_jet' | 'thunder_shock' | 'volt_tackle' | 'solar_beam' | 'seed_bomb' | 'blizzard' | 'ice_shard' |
-  'dynamic_punch' | 'close_combat' | 'pixel_punch' | 'sludge_bomb' | 'toxic' | 'acid_spray' | 'earthquake' | 'sandstorm' | 'future_sight' | 
+  'dynamic_punch' | 'close_combat' | 'pixel_punch' | 'sludge_bomb' | 'toxic' | 'acid_spray' | 'earthquake' | 'sandstorm' | 'future_sight' |
   'digital_dash' | 'phantom_force' | 'static_slam' | 'blob_beam' | 'hyper_beam' | 'quick_attack';
 
 export interface BlobAppearance {
@@ -28,7 +28,7 @@ interface AppearanceUnlocks {
 export function useBlobAppearance(_evolutionLevel: number) {
   const { settings } = useSettings();
   const [evolutionLevel, setEvolutionLevel] = useState(_evolutionLevel);
-  
+
   // Default appearance
   const [appearance, setAppearance] = useState<BlobAppearance>({
     type: 'normal',
@@ -37,7 +37,7 @@ export function useBlobAppearance(_evolutionLevel: number) {
     attack: 'none',
     attacks: ['none']
   });
-  
+
   // Track unlocked appearance options
   const [unlockedOptions, setUnlockedOptions] = useState<AppearanceUnlocks>({
     types: ['normal'],
@@ -54,80 +54,80 @@ export function useBlobAppearance(_evolutionLevel: number) {
       mouths: ['default'],
       attacks: ['none']
     };
-    
-    // Level 2: Unlock basic types
+
+    // Level 2: Unlock basic types and basic customization options
     if (_evolutionLevel >= 2) {
       newUnlocks.types.push('fire', 'water');
+      newUnlocks.eyes.push('round', 'sleepy');
+      newUnlocks.mouths.push('wide', 'smirk');
     }
-    
+
     // Level 3: Unlock more types and basic eyes
     if (_evolutionLevel >= 3) {
       newUnlocks.types.push('grass');
-      newUnlocks.eyes.push('round');
-      newUnlocks.mouths.push('wide');
+      newUnlocks.eyes.push('oval', 'angry');
+      newUnlocks.mouths.push('small', 'sad');
       newUnlocks.attacks.push('fireball');
     }
-    
+
     // Level 4: Unlock even more customizations
     if (_evolutionLevel >= 4) {
       newUnlocks.types.push('electric');
-      newUnlocks.eyes.push('oval');
-      newUnlocks.mouths.push('small');
+      newUnlocks.eyes.push('star', 'cute');
+      newUnlocks.mouths.push('kawaii', 'laugh');
       newUnlocks.attacks.push('watergun', 'thunderbolt');
     }
-    
+
     // Level 5: More unlocks
     if (_evolutionLevel >= 5) {
-      newUnlocks.types.push('rock', 'ice');
-      newUnlocks.eyes.push('star');
-      newUnlocks.mouths.push('kawaii');
+      newUnlocks.types.push('ice');
+      newUnlocks.eyes.push('heart', 'pixel');
+      newUnlocks.mouths.push('surprised', 'tongue');
       newUnlocks.attacks.push('rockthrow', 'leafblade');
     }
-    
+
     // Level 6: Unlocking more options
     if (_evolutionLevel >= 6) {
-      newUnlocks.types.push('fighting', 'poison');
-      newUnlocks.eyes.push('heart');
-      newUnlocks.mouths.push('surprised');
+      newUnlocks.types.push('fighting');
+      newUnlocks.eyes.push('square', 'dizzy');
+      newUnlocks.mouths.push('cool', 'pixel');
       newUnlocks.attacks.push('psychicwave');
     }
-    
+
     // Level 7+: Final unlocks
     if (_evolutionLevel >= 7) {
-      newUnlocks.types.push('ground', 'psychic', 'ghost');
-      newUnlocks.eyes.push('square');
-      newUnlocks.mouths.push('cool');
+      newUnlocks.types.push('psychic');
       newUnlocks.attacks.push('shadowball', 'icebeam');
     }
-    
+
     setUnlockedOptions(newUnlocks);
-    
+
   }, [_evolutionLevel]);
-  
+
   const setType = (type: BlobType) => {
     if (unlockedOptions.types.includes(type)) {
       setAppearance(prev => ({ ...prev, type }));
     }
   };
-  
+
   const setEyes = (eyes: BlobEyes) => {
     if (unlockedOptions.eyes.includes(eyes)) {
       setAppearance(prev => ({ ...prev, eyes }));
     }
   };
-  
+
   const setMouth = (mouth: BlobMouth) => {
     if (unlockedOptions.mouths.includes(mouth)) {
       setAppearance(prev => ({ ...prev, mouth }));
     }
   };
-  
+
   const setAttack = (attack: BlobAttack) => {
     if (unlockedOptions.attacks.includes(attack)) {
       setAppearance(prev => ({ ...prev, attack }));
     }
   };
-  
+
   // Reset appearance to defaults
   const resetAppearance = () => {
     setAppearance({

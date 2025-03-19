@@ -489,25 +489,6 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
             </Button>
           </div>
 
-          <div className="bg-black/50 p-4 rounded-lg border border-gray-800">
-            <h3 className="text-white pixel-text mb-2">Join Private Battle</h3>
-            <div className="flex space-x-2">
-              <Input
-                type="text"
-                placeholder="Enter battle code"
-                value={battleCode}
-                onChange={(e) => setBattleCode(e.target.value.toUpperCase())}
-                className="flex-1 bg-gray-900 border-gray-800 text-white pixel-text"
-              />
-              <Button
-                onClick={handleJoinBattle}
-                disabled={!battleCode.trim()}
-                className="bg-blob-tertiary hover:bg-blob-tertiary/90 text-white disabled:opacity-50"
-              >
-                <span className="pixel-text">Join</span>
-              </Button>
-            </div>
-          </div>
 
           <div className="flex justify-center">
             <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-green-500' : 'bg-gray-500'} mr-2`}></div>

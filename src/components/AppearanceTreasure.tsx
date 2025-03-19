@@ -117,11 +117,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
     'grass': { bg: 'bg-green-400', icon: '🌿' },
     'ice': { bg: 'bg-cyan-300', icon: '❄️' },
     'fighting': { bg: 'bg-orange-600', icon: '👊' },
-    'poison': { bg: 'bg-purple-500', icon: '☠️' },
-    'ground': { bg: 'bg-amber-600', icon: '🌋' },
-    'rock': { bg: 'bg-stone-500', icon: '🪨' },
     'psychic': { bg: 'bg-pink-400', icon: '🔮' },
-    'ghost': { bg: 'bg-indigo-500', icon: '👻' }
   };
 
   // Map of eye styles
@@ -143,7 +139,35 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
         </svg>
       </div>
     ),
-    'square': <span className="block w-3/4 h-3/4 bg-black rounded-sm mx-auto my-auto"></span>
+    'square': <span className="block w-3/4 h-3/4 bg-black rounded-sm mx-auto my-auto"></span>,
+    'sleepy': (
+      <div className="relative w-full h-full">
+        <span className="block w-full h-2/5 bg-black rounded-full absolute bottom-0"></span>
+      </div>
+    ),
+    'angry': (
+      <div className="relative w-full h-full">
+        <span className="block w-full h-full bg-black rounded-full"></span>
+        <span className="absolute -top-1 -left-1 w-3/5 h-1 bg-black rotate-45"></span>
+      </div>
+    ),
+    'cute': (
+      <div className="relative w-full h-full flex items-center justify-center">
+        <span className="block w-3/4 h-3/4 bg-black rounded-full"></span>
+        <span className="absolute w-1/3 h-1/3 bg-white rounded-full top-1/4 left-1/4"></span>
+      </div>
+    ),
+    'pixel': (
+      <div className="grid grid-cols-3 grid-rows-3 w-full h-full">
+        <div className="col-start-2 col-end-3 row-start-2 row-end-3 bg-black"></div>
+      </div>
+    ),
+    'dizzy': (
+      <div className="relative w-full h-full">
+        <span className="absolute top-1/2 left-0 w-full h-1/5 bg-black rounded-full transform -rotate-45"></span>
+        <span className="absolute top-1/2 left-0 w-full h-1/5 bg-black rounded-full transform rotate-45"></span>
+      </div>
+    )
   };
 
   // Map of mouth styles
@@ -160,6 +184,38 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
     'cool': (
       <div className="w-full h-full flex items-center justify-center">
         <div className="w-3/4 h-1/3 bg-black rounded-sm transform rotate-12"></div>
+      </div>
+    ),
+    'smirk': (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="w-3/4 h-1/3 bg-black rounded-sm transform translate-x-1 rotate-6"></div>
+      </div>
+    ),
+    'laugh': (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="w-3/4 h-2/3 bg-black rounded-md flex flex-col justify-center items-center">
+          <div className="w-2/3 h-1/3 bg-white rounded-sm"></div>
+        </div>
+      </div>
+    ),
+    'sad': (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="w-1/2 h-1/2 border-b-2 border-l-2 border-r-2 border-black rounded-b-full transform rotate-180"></div>
+      </div>
+    ),
+    'tongue': (
+      <div className="w-full h-full flex flex-col items-center justify-center relative">
+        <div className="w-1/2 h-1/2 border-b-2 border-l-2 border-r-2 border-black rounded-b-full"></div>
+        <div className="w-1/4 h-2/3 bg-red-400 absolute -bottom-1/3 rounded-b-md"></div>
+      </div>
+    ),
+    'pixel': (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="w-2/3 h-1/3 grid grid-cols-3 gap-0.5">
+          <div className="bg-black"></div>
+          <div className="bg-black"></div>
+          <div className="bg-black"></div>
+        </div>
       </div>
     )
   };
@@ -208,35 +264,16 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
             <div className={`w-full h-full bg-cyan-200 rounded ${commonStyles}`}></div>
           </div>
         );
-      case 'rock':
-      case 'ground':
-        return (
-          <div className={`absolute ${position} w-3 h-3`}>
-            <div className={`w-3 h-3 bg-stone-500 rounded-md ${commonStyles}`}></div>
-          </div>
-        );
       case 'fighting':
         return (
           <div className={`absolute ${position} w-4 h-4`}>
             <div className={`w-4 h-4 bg-orange-600 rounded-full ${commonStyles}`}></div>
           </div>
         );
-      case 'poison':
-        return (
-          <div className={`absolute ${position} w-3 h-3`}>
-            <div className={`w-full h-full bg-purple-500 rounded-full ${commonStyles}`}></div>
-          </div>
-        );
       case 'psychic':
         return (
           <div className={`absolute ${position} w-10 h-2`}>
             <div className={`w-full h-1 bg-pink-400 rounded-full ${commonStyles}`}></div>
-          </div>
-        );
-      case 'ghost':
-        return (
-          <div className={`absolute ${position} w-3 h-3`}>
-            <div className={`w-full h-full bg-indigo-800 rounded-full ${commonStyles}`}></div>
           </div>
         );
       default: // Normal type
@@ -502,10 +539,10 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                 <div>
                   <h4 className="text-white pixel-text mb-2">Choose a Type</h4>
                   <div className="grid grid-cols-4 gap-2">
-                    {unlockedOptions.types.map((type) => (
+                    {unlockedOptions.types.filter(type => typeMap[type]?.bg).map((type) => (
                       <button
                         key={type}
-                        className={`w-12 h-12 ${typeMap[type].bg} rounded-full ${appearance.type === type ? 'ring-2 ring-offset-2 ring-white' : ''} flex items-center justify-center text-lg`}
+                        className={`w-12 h-12 ${typeMap[type]?.bg} rounded-full ${appearance.type === type ? 'ring-2 ring-offset-2 ring-white' : ''} flex items-center justify-center text-lg`}
                         onClick={() => {
                           onTypeChange(type);
                           if (settings.sound) {
@@ -513,7 +550,7 @@ const AppearanceTreasure: React.FC<AppearanceTreasureProps> = ({
                           }
                         }}
                       >
-                        {typeMap[type].icon}
+                        {typeMap[type]?.icon}
                       </button>
                     ))}
                     {evolutionLevel < 7 && (
