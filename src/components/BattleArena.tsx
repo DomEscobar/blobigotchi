@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useBattle } from '@/contexts/BattleContext';
 import Blob from '@/components/Blob';
-import { BlobAppearance, BlobAttack, BlobType } from '@/hooks/useBlobAppearance';
 import { getAttackById } from '@/data/attacks';
+import { BlobAppearance, BlobAttack, BlobType } from '@/store/slices/blobAppearanceSlice';
 
 // Sound effects component
 const SoundEffects = ({ activeSound }: { activeSound: string | null }) => {

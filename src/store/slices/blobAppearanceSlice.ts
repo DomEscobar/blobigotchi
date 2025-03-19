@@ -14,6 +14,7 @@ export interface BlobAppearance {
   eyes: BlobEyes;
   mouth: BlobMouth;
   attack: BlobAttack;
+  attacks: BlobAttack[];
 }
 
 export interface AppearanceUnlocks {
@@ -33,7 +34,8 @@ const initialState: BlobAppearanceState = {
     type: 'normal',
     eyes: 'default',
     mouth: 'default',
-    attack: 'none'
+    attack: 'none',
+    attacks: ['none']
   },
   unlockedOptions: {
     types: ['normal'],
@@ -72,7 +74,8 @@ export const blobAppearanceSlice = createSlice({
         type: 'normal',
         eyes: 'default',
         mouth: 'default',
-        attack: 'none'
+        attack: 'none',
+        attacks: ['none']
       };
     },
     setAppearance: (state, action: PayloadAction<BlobAppearance>) => {

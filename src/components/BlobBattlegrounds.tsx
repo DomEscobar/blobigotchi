@@ -8,6 +8,7 @@ import BattleArena from './BattleArena';
 import { useBattle, BattleProvider } from '@/contexts/BattleContext';
 import { useSettings } from '@/hooks/useSettings';
 import { useBlobAppearance } from '@/hooks/useBlobAppearance';
+import { useBlobAppearanceRedux } from '@/hooks/useBlobAppearanceRedux';
 
 interface BlobBattlegroundsProps {
   evolutionLevel: number;
@@ -60,7 +61,7 @@ const BlobBattlegroundsInner: React.FC<BlobBattlegroundsProps> = ({
   } = useBattle();
 
   const { settings } = useSettings();
-  const { appearance } = useBlobAppearance(evolutionLevel);
+  const { appearance } = useBlobAppearanceRedux();
 
   // Log connection status changes for debugging
   useEffect(() => {
